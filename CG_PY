@@ -1,0 +1,1324 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb 28 13:56:41 2024
+
+@author: AG96923
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 20 18:43:16 2024
+
+@author: AG96923
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 16 15:11:53 2024
+
+@author: AG96923
+"""
+import requests
+import oracledb
+import pandas as pd
+import time
+
+
+clmEvntKey1 = []
+field = []
+daas = []
+hdr = []
+comment = []
+clmevntkey2 = []
+
+missing = []
+
+# Connect to the database
+conn = oracledb.connect(user='EHUB_XDS_ETL', password='Jan#1one', dsn='va33fx11v1-scan1.wellpoint.com:1525/EHUBCLMP_STDBY')
+# print("conn", conn)
+cursor = conn.cursor()
+
+# cursor.execute("SELECT * from EHUB_CLM_SDS.EHUB_CLM_EVNT_ACMODS_CL WHERE SOR_CD ='1039' AND rownum<=100")
+cursor.execute("SELECT * FROM EHUB_CLM_SDS_GREEN.EHUB_CLM_HDR_EMPLYR WHERE SOR_CD ='893' and extract(YEAR from rcrd_creatd_tms)='2024' and CLM_STRT_DT >= to_date('2024-01-01','YYYY-MM-DD') and CLM_END_DT<= to_date('2024-04-05','YYYY-MM-DD') and clm_evnt_key Like '8%' and rownum <=5000")
+# cursor.execute("SELECT CLM_EVNT_KEY FROM EHUB_CLM_SDS_GREEN.EHUB_CLM_HDR_EMPLYR WHERE SOR_CD ='1039' AND rownum<=100000")
+
+results = cursor.fetchall()
+# print(results)
+# # Loop through the results
+for row in results:
+    clmEvntKey1.append(row)
+count = 0
+if cursor:
+    cursor.close()
+    conn.close()
+    
+    
+
+
+    
+# print("ALL", clmEvntKey1[0][0])
+for i in clmEvntKey1:
+    count = count +1
+    print(count)
+    # print("First", i[0])
+    try:
+        myvariables = {"clmEvntKey":i[0]}
+        # print("myvariables", myvariables)
+        url = "https://internal-edpl-platinum-container-alb2-1794880106.us-east-1.elb.amazonaws.com/edpdaasclaimsv3/api/claims?apiKey=E2PSlFq_aq_xBCN1BpcXFQ"
+        # my_headers = {"apikey":"E2PSlFq_aq_xBCN1BpcXFQ"}
+        body = """
+              query ($clmEvntKey: String) {
+            clmHdr(clmEvntKey: $clmEvntKey) {
+                edges{
+                    node{
+                clmRefId
+    admsnTypeCd
+    clmEobmetadata{
+        eobDt
+        eobChkDt
+        eobClmStrtDt
+        eobClmEndDt
+        eobClmPrcsDt
+    }
+    adjstmntRsnCd
+    totlCobAlwdAmt
+    totlCobPaidAmt
+    itsSccfAdjstmntNbr
+      covaTotlClntNetAmt
+      covaTotlPatPayAmt
+covaTotlInrxNetAmt
+covaTotlPharmNetAmt
+covaTotlDspnsgFeeAmt
+    bllngNpiPrmryProvId
+    # lastPrcsDt
+    totlHraPdAmt
+    clmUId
+    clmEvntKey
+    # patMbrCode
+    prcsDt
+    # billingProvidertaxId
+    npi
+    totlPlanSvngsAmt
+    rcrdCreatdDt
+    provTaxId
+    totlProvRspAmt
+        totlMbrRspAmt
+        totlPaidAmt
+        totlWthldAmt
+        totlAlwdAmt
+        totlNonCvrdAmt
+        totlBilldChrgAmt
+        totlDdctblAmt
+        totlCpaymntAmt
+        totlCoinsAmt
+    # clmStrtDt
+    clmEndDt
+    # clmPrcsDt
+    payeDtl{
+        payeNm
+        payeId
+        payeTypeCd
+        payeIdTypeCd
+        sorPayeTypeCd
+    }
+    provDtls{
+        # blngProvNpi
+        provIdTypeCd
+        # provTaxId
+        provId
+        # rndrProvNpi
+        provRoleCd
+        provId
+        provFullNm
+        provFrstNm
+        provLastNm
+        provScndryNm
+        adrsLine1Txt
+        adrsLine2Txt
+        cityNm
+        cntryNm
+        stCd
+        zipCd
+        provSpcltyCd
+        # provLcnsId
+        # provTaxId
+        # provPrmryNPI
+        # provScndryNPI
+        provNmNullInd
+        phrmcyPhoneNbr
+        # prescribedBy
+        # pharmacyNm
+    }
+    
+    totlMbrRspAmt
+    totlPaidAmt
+    totlWthldAmt
+    totlAlwdAmt
+    totlNonCvrdAmt
+    totlDdctblAmt
+    totlBilldChrgAmt
+    totlCpaymntAmt
+    totlCoinsAmt
+    ocNm
+    ocEfctvDt
+    ocPlcyNbr
+    pcpProvNbr
+    actvPlanCd
+    billTypeCd
+    planTypeCd
+    cpttdInd
+    caHmoInd
+    tpaClmId
+    clmVndrNm
+    crvOutInd
+    clmStatsclInd
+    totlMbrAmtAplydToOop
+    chkAmt
+    bnkAcctNbr
+    chkNbr
+    chkDt
+    jaaInd
+    preauthrznId
+    patAcctId
+    cobInd
+    sbrgtnInd
+    phrmcyXrefTrnsctnId
+    phrmcyProvId
+    phrmcyRfrncNbr
+    orgnlClmId
+    spltClmId
+    itsSccfNbr
+    covaInd
+    itsClmCd
+    wrkrsCmpnstnInd
+    mdcdInd
+    cmpnyCd
+    mbrshpSorCd
+    mbuCd
+    clmUniqId
+    medcrInd
+    smryPrcsdClmInd
+    itsInd
+    erisaInd
+    sorActnCd
+    cdhpInd
+    ntwkId
+    clmRmrkCd
+    clmPaidDt
+    patAcctId
+mbrDtls {
+    # patMbrCode
+    subGrpId
+    mbrGrpId
+    derivdGrpId
+    subGrpNbr
+    hcIdSfx
+    caseNbr
+    alphPrfxCd
+    sbscrbrFrstNm
+    sbscrbrMidNm
+    sbscrbrLastNm
+    sbscrbrAdrsLine1Txt
+    sbscrbrAdrsLine2Txt
+    sbscrbrCityNm
+    sbscrbrStCd
+    sbscrbrZipCd
+    sbscrbrId
+    patLastNm
+    patFrstNm
+    patMidNm
+    patBrthDt
+    patGndrCd
+    patRltnshpCd
+    cntrctCd
+    alphPrfxHcId
+    mbrQlfrId
+    mbrSqncNbr
+    grpId
+mbrSqncNbr
+hcId
+}
+snsitvClmIndCd
+innCd
+clmClsCd{
+    name
+    code
+    description
+}
+clmSttsCd{
+    name
+    code
+    description
+}
+clmTypeCd
+{
+    name
+    code
+    description
+}
+clmDtl{
+    wthldAmt
+    srvcDtls{
+        srvcExplntnCd
+        explanationCd{
+            code
+            name
+            description
+        }
+    }
+    planSvngsAmt
+    srvcStrtDt
+clmLineId
+clmUId
+clmEvntKey
+    clmLineNbr
+    rowSqncNbr
+    # tosCdclmEvntKey
+    clmLineNbr
+    rowSqncNbr
+    tosCd
+    placeofSrvcCd{
+        code
+        name
+        description
+    }
+    billdChrgAmt
+    coinsAmt
+    cpaymntAmt
+    ddctblAmt
+    nonCvrdAmt
+    alwdAmt
+    paidAmt
+    mbrRspAmt
+    provRspAmt
+    hlthSrvcTypeCd
+    hlthSrvcCd{
+        code
+        name
+        description
+    }
+    hlthSrvcMdfr1Cd
+    hlthSrvcMdfr2Cd
+    hlthSrvcMdfr3Cd
+    hlthSrvcMdfr4Cd
+}
+# payeDtl {
+# payeNm
+# payeId
+# }
+rawClmId
+clmAdjstmntNbr
+clmUId
+clmId
+sorCd{
+    code
+    name
+    description
+}
+clmStrtDt
+clmEvntKey
+innCd
+clmQlfrId
+clmRcvdDt
+sorClmRcvdDt
+                }
+                }
+                    
+                }
+            }
+            """
+        # print(body)
+        daas_response = requests.post(url=url, verify=False, json={"query":body, "variables":myvariables})
+        # print("daas_response", daas_response)
+        response = daas_response.json()
+        print("response", response['data']['clmHdr']['edges'])
+        
+        if daas_response.status_code == 200 and len(response['data']['clmHdr']['edges'])>0:
+            final_response_hdr = response['data']['clmHdr']['edges'][0]['node']
+            
+            # print(final_response_hdr)
+            try:
+                if "clmEvntKey" in final_response_hdr:
+                    clmEvntKey_res = final_response_hdr['clmEvntKey']
+                    # print(clmId_res)
+                else:
+                    clmEvntKey_res = ""
+                
+                # print(i[0])
+                if i[0] != clmEvntKey_res:
+                    field.append("clmEvntKey")
+                    daas.append(clmEvntKey_res)
+                    hdr.append(i[0])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmEvntKey3:
+                print("clmEvntKey3", clmEvntKey3)
+                
+            try:
+                if "clmRefId" in final_response_hdr:
+                    clmRefId_res= final_response_hdr['clmRefId']
+                    # print(clmId_res)
+                else:
+                    clmRefId_res = ""
+                
+                # print(i[1])
+                if i[1] != clmRefId_res:
+                    field.append("clmRefId")
+                    daas.append(clmRefId_res)
+                    hdr.append(i[1])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmRefId3:
+                print("clmRefId3", clmRefId3)
+                
+            try:
+                if "clmId" in final_response_hdr:
+                    clmId_res = final_response_hdr['clmId']
+                    # print(clmId_res)
+                else:
+                    clmId_res = ""
+                
+                # print(i[2])
+                if i[2] != clmId_res:
+                    field.append("clmId")
+                    daas.append(clmId_res)
+                    hdr.append(i[2])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmId3:
+                print("clmId3", clmId3)
+                
+            try:
+                if "rawClmId" in final_response_hdr:
+                    rawClmId_res = final_response_hdr['rawClmId']
+                    # print(clmId_res)
+                else:
+                    rawClmId_res = ""
+                
+                
+                if i[3] != rawClmId_res:
+                    field.append("rawClmId")
+                    daas.append(rawClmId_res)
+                    hdr.append(i[3])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as rawClmId3:
+                print("rawClmId3", rawClmId3)
+                
+            try:
+                if "clmClsCd" in final_response_hdr:
+                    clmClsCd_res = final_response_hdr['clmClsCd']['code']
+                    # print(clmId_res)
+                else:
+                    clmClsCd_res = ""
+                
+                
+                if i[4] != clmClsCd_res:
+                    field.append("clmClsCd")
+                    daas.append(clmClsCd_res)
+                    hdr.append(i[4])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmClsCd3:
+                print("clmClsCd3", clmClsCd3)
+                
+            # try:
+            #     if "clmTypeCd" in final_response_hdr:
+            #         clmTypeCd_res = final_response_hdr['clmTypeCd']['code']
+            #         # print(clmId_res)
+            #     else:
+            #         clmTypeCd_res = ""
+                
+                
+            #     if i[5] != clmTypeCd_res:
+            #         field.append("clmTypeCd")
+            #         daas.append(clmTypeCd_res)
+            #         hdr.append(i[5])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as clmTypeCd3:
+            #     print("clmTypeCd3", clmTypeCd3)  
+                
+            try:
+                if "sorCd" in final_response_hdr:
+                    sorCd_res = final_response_hdr['sorCd']['code']
+                    # print(clmId_res)
+                else:
+                    sorCd_res = ""
+                
+                
+                if i[6] != sorCd_res:
+                    field.append("sorCd")
+                    daas.append(sorCd_res)
+                    hdr.append(i[6])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as sorCd3:
+                print("sorCd3", sorCd3) 
+                
+                
+                
+            try:
+                if "clmSttsCd" in final_response_hdr:
+                    clmSttsCd_res = final_response_hdr['clmSttsCd']['code']
+                    # print(clmId_res)
+                else:
+                    clmSttsCd_res = ""
+                
+                
+                if i[7] != clmSttsCd_res:
+                    field.append("clmSttsCd")
+                    daas.append(clmSttsCd_res)
+                    hdr.append(i[7])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmSttsCd3:
+                print("clmSttsCd3", clmSttsCd3)
+                
+            try:
+                if "snsitvClmIndCd" in final_response_hdr:
+                    snsitvClmIndCd_res = final_response_hdr['snsitvClmIndCd']
+                    # print(clmId_res)
+                else:
+                    snsitvClmIndCd_res = ""
+                
+                
+                if i[8] != snsitvClmIndCd_res:
+                    field.append("snsitvClmIndCd")
+                    daas.append(snsitvClmIndCd_res)
+                    hdr.append(i[8])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as snsitvClmIndCd3:
+                print("snsitvClmIndCd3", snsitvClmIndCd3)  
+                
+                
+                
+            try:
+                if "innCd" in final_response_hdr:
+                    innCd_res = final_response_hdr['innCd']
+                    # print(innCd_res)
+                else:
+                    innCd_res = ""
+                
+                
+                if i[9] != innCd_res:
+                    field.append("innCd")
+                    daas.append(innCd_res)
+                    hdr.append(i[9])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as innCd3:
+                print("innCd3", innCd3)    
+                
+                
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         hcId_res = final_response_hdr['mbrDtls']['hcId']
+            #         # print(clmId_res)
+            #     else:
+            #         hcId_res = ""
+                
+                
+            #     if i[5] != hcId_res:
+            #         field.append("hcId")
+            #         daas.append(hcId_res)
+            #         hdr.append(i[5])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as hcId3:
+            #     print("hcId3", hcId3)
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         mbrQlfrId_res = final_response_hdr['mbrDtls']['mbrQlfrId']
+            #         # print(clmId_res)
+            #     else:
+            #         mbrQlfrId_res = ""
+                
+                
+            #     if str(i[6]) != mbrQlfrId_res:
+            #         field.append("mbrQlfrId")
+            #         daas.append(mbrQlfrId_res)
+            #         hdr.append(i[6])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as mbrQlfrId3:
+            #     print("mbrQlfrId3", mbrQlfrId3)
+                
+            try:
+                if "clmStrtDt" in final_response_hdr:
+                    clmStrtDt_res = final_response_hdr['clmStrtDt']
+                    # print(clmId_res)
+                else:
+                    clmStrtDt_res = ""
+                # print("oye",i[10].strftime("%Y-%m-%d"))
+                # print("strtdt",clmStrtDt_res)
+                # print("strtdt",type(clmStrtDt_res))
+
+                if str(i[10].strftime("%Y-%m-%d")) != clmStrtDt_res:
+                    field.append("clmStrtDt")
+                    daas.append(clmStrtDt_res)
+                    hdr.append(i[10])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmStrtDt3:
+                print("clmStrtDt3", clmStrtDt3)
+                
+            try:
+                if "clmEndDt" in final_response_hdr:
+                    clmEndDt_res = final_response_hdr['clmEndDt']
+                    # print(clmId_res)
+                else:
+                    clmEndDt_res = ""
+
+                if str(i[11].strftime("%Y-%m-%d")) != clmEndDt_res:
+                    field.append("clmEndDt")
+                    daas.append(clmEndDt_res)
+                    hdr.append(i[11])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmEndDt3:
+                print("clmEndDt3", clmEndDt3)
+                
+                
+                
+            try:
+                 if "clmPaidDt" in final_response_hdr:
+                     clmPaidDt_res = final_response_hdr['clmPaidDt']
+                     # print(clmId_res)
+                 else:
+                     clmPaidDt_res = ""
+
+                 if str(i[12].strftime("%Y-%m-%d")) != clmPaidDt_res:
+                     field.append("clmPaidDt")
+                     daas.append(clmPaidDt_res)
+                     hdr.append(i[12])
+                     comment.append('Not Matching')
+                     clmevntkey2.append([i[0]])
+            except Exception as clmPaidDt3:
+                 print("clmPaidDt3", clmPaidDt3)  
+                 
+                 
+                 
+            try:
+                if "clmRcvdDt" in final_response_hdr:
+                    clmRcvdDt_res = final_response_hdr['clmRcvdDt']
+                    # print(clmId_res)
+                else:
+                    clmRcvdDt_res = ""
+
+                if str(i[13].strftime("%Y-%m-%d")) != clmRcvdDt_res:
+                    field.append("clmRcvdDt")
+                    daas.append(clmRcvdDt_res)
+                    hdr.append(i[13])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmRcvdDt3:
+                print("clmRcvdDt3", clmRcvdDt3) 
+                
+                
+                
+                
+            try:
+                if "prcsDt" in final_response_hdr:
+                    prcsDt_res = final_response_hdr['prcsDt']
+                    # print(clmId_res)
+                else:
+                    prcsDt_res = ""
+
+                if i[14].strftime("%Y-%m-%d") != prcsDt_res:
+                    field.append("prcsDt")
+                    daas.append(prcsDt_res)
+                    hdr.append(i[14])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as prcsDt3:
+                print("prcsDt3", prcsDt3)      
+                
+                
+            try:
+                if "crvOutInd" in final_response_hdr:
+                    crvOutInd_res = final_response_hdr['crvOutInd']
+                    # print(clmId_res)
+                else:
+                    crvOutInd_res = ""
+
+                if i[15] != crvOutInd_res:
+                    field.append("crvOutInd")
+                    daas.append(crvOutInd_res)
+                    hdr.append(i[15])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as crvOutInd3:
+                print("crvOutInd3", crvOutInd3)
+                
+                
+            try:
+                if "clmVndrNm" in final_response_hdr:
+                    clmVndrNm_res = final_response_hdr['clmVndrNm']
+                    # print(clmId_res)
+                else:
+                    clmVndrNm_res = ""
+
+                if i[16] != clmVndrNm_res:
+                    field.append("clmVndrNm")
+                    daas.append(clmVndrNm_res)
+                    hdr.append(i[16])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmVndrNm3:
+                print("clmVndrNm3", clmVndrNm3)    
+                
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         cntrctCd_res = final_response_hdr['mbrDtls']['cntrctCd']
+            #         # print(clmId_res)
+            #     else:
+            #         cntrctCd_res = ""
+
+            #     if i[10] != cntrctCd_res:
+            #         field.append("cntrctCd")
+            #         daas.append(cntrctCd_res)
+            #         hdr.append(i[10])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as cntrctCd3:
+            #     print("cntrctCd3", cntrctCd3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    caseNbr_res = final_response_hdr['mbrDtls']['caseNbr']
+                    # print(clmId_res)
+                else:
+                    caseNbr_res = ""
+
+                if i[49] != caseNbr_res:
+                    field.append("caseNbr")
+                    daas.append(caseNbr_res)
+                    hdr.append(i[49])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as caseNbr3:
+                print("caseNbr3", caseNbr3)
+                
+            # try:
+            #     if "sorCd" in final_response_hdr:
+            #         sorCd_res = final_response_hdr['sorCd']['code']
+            #         # print(clmId_res)
+            #     else:
+            #         sorCd_res = ""
+
+            #     if i[12] != sorCd_res:
+            #         field.append("sorCd")
+            #         daas.append(sorCd_res)
+            #         hdr.append(i[12])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as sorCd3:
+            #     print("sorCd3", sorCd3)
+                
+            try:
+                if "totlBilldChrgAmt" in final_response_hdr:
+                    totlBilldChrgAmt_res = final_response_hdr['totlBilldChrgAmt']
+                    # print(clmId_res)
+                else:
+                    totlBilldChrgAmt_res = ""
+
+                if i[17] != totlBilldChrgAmt_res:
+                    field.append("totlBilldChrgAmt")
+                    daas.append(totlBilldChrgAmt_res)
+                    hdr.append(i[17])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlBilldChrgAmt3:
+                print("totlBilldChrgAmt3", totlBilldChrgAmt3)
+                
+                
+            try:
+                if "totlAlwdAmt" in final_response_hdr:
+                    totlAlwdAmt_res = final_response_hdr['totlAlwdAmt']
+                    # print(clmId_res)
+                else:
+                    totlAlwdAmt_res = ""
+
+                if i[18] != totlAlwdAmt_res:
+                    field.append("totlAlwdAmt")
+                    daas.append(totlAlwdAmt_res)
+                    hdr.append(i[18])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlAlwdAmt3:
+                print("totlAlwdAmt3", totlAlwdAmt3) 
+                
+                
+            try:
+                if "totlNonCvrdAmt" in final_response_hdr:
+                    totlNonCvrdAmt_res = final_response_hdr['totlNonCvrdAmt']
+                    # print(clmId_res)
+                else:
+                    totlNonCvrdAmt_res = ""
+
+                if i[19] != totlNonCvrdAmt_res:
+                    field.append("totlNonCvrdAmt")
+                    daas.append(totlNonCvrdAmt_res)
+                    hdr.append(i[19])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlNonCvrdAmt3:
+                print("totlNonCvrdAmt3", totlNonCvrdAmt3)    
+                
+                
+            try:
+                if "totlCoinsAmt" in final_response_hdr:
+                    totlCoinsAmt_res = final_response_hdr['totlCoinsAmt']
+                    # print(clmId_res)
+                else:
+                    totlCoinsAmt_res = ""
+
+                if i[20] != totlCoinsAmt_res:
+                    field.append("totlCoinsAmt")
+                    daas.append(totlCoinsAmt_res)
+                    hdr.append(i[20])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlCoinsAmt3:
+                print("totlCoinsAmt3", totlCoinsAmt3) 
+                
+                
+                
+            try:
+                if "totlCpaymntAmt" in final_response_hdr:
+                    totlCpaymntAmt_res = final_response_hdr['totlCpaymntAmt']
+                    # print(clmId_res)
+                else:
+                    totlCpaymntAmt_res = ""
+
+                if i[21] != totlCpaymntAmt_res:
+                    field.append("totlCpaymntAmt")
+                    daas.append(totlCpaymntAmt_res)
+                    hdr.append(i[21])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlCpaymntAmt3:
+                print("totlCpaymntAmt3", totlCpaymntAmt3)    
+                
+                
+                
+            try:
+                if "totlDdctblAmt" in final_response_hdr:
+                    totlDdctblAmt_res = final_response_hdr['totlDdctblAmt']
+                    # print(clmId_res)
+                else:
+                    totlDdctblAmt_res = ""
+
+                if i[22] != totlDdctblAmt_res:
+                    field.append("totlDdctblAmt")
+                    daas.append(totlDdctblAmt_res)
+                    hdr.append(i[22])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlDdctblAmt3:
+                print("totlDdctblAmt3", totlDdctblAmt3)
+                
+                
+            try:
+                if "totlPlanSvngsAmt" in final_response_hdr:
+                    totlPlanSvngsAmt_res = final_response_hdr['totlPlanSvngsAmt']
+                    # print(clmId_res)
+                else:
+                    totlPlanSvngsAmt_res = ""
+
+                if i[23] != totlPlanSvngsAmt_res:
+                    field.append("totlPlanSvngsAmt")
+                    daas.append(totlPlanSvngsAmt_res)
+                    hdr.append(i[23])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlPlanSvngsAmt3:
+                print("totlPlanSvngsAmt3", totlPlanSvngsAmt3)    
+                
+                
+            try:
+                if "totlMbrRspAmt" in final_response_hdr:
+                    totlMbrRspAmt_res = final_response_hdr['totlMbrRspAmt']
+                    # print(clmId_res)
+                else:
+                    totlMbrRspAmt_res = ""
+
+                if i[24] != totlMbrRspAmt_res:
+                    field.append("totlMbrRspAmt")
+                    daas.append(totlMbrRspAmt_res)
+                    hdr.append(i[24])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlMbrRspAmt3:
+                print("totlMbrRspAmt3", totlMbrRspAmt3)
+                
+                
+            try:
+                if "totlProvRspAmt" in final_response_hdr:
+                    totlProvRspAmt_res = final_response_hdr['totlProvRspAmt']
+                    # print(clmId_res)
+                else:
+                    totlProvRspAmt_res = 0
+
+                if i[25] != totlProvRspAmt_res:
+                    field.append("totlProvRspAmt")
+                    daas.append(totlProvRspAmt_res)
+                    hdr.append(i[25])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlProvRspAmt3:
+                print("totlProvRspAmt3", totlProvRspAmt3)
+                
+                
+                
+            try:
+                if "totlPaidAmt" in final_response_hdr:
+                    totlPaidAmt_res = final_response_hdr['totlPaidAmt']
+                    # print(clmId_res)
+                else:
+                    totlPaidAmt_res = ""
+
+                if i[26] != totlPaidAmt_res:
+                    field.append("totlPaidAmt")
+                    daas.append(totlPaidAmt_res)
+                    hdr.append(i[26])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as totlPaidAmt3:
+                print("totlPaidAmt3", totlPaidAmt3)
+                
+                
+            try:
+                if "provDtls" in final_response_hdr:
+                    provFullNm_res = final_response_hdr['provDtls']['provFullNm']
+                    # print(clmId_res)
+                else:
+                    provFullNm_res = ""
+
+                if i[27] != provFullNm_res:
+                    field.append("provFullNm")
+                    daas.append(provFullNm_res)
+                    hdr.append(i[27])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as provFullNm3:
+                print("provFullNm3", provFullNm3)    
+                
+                
+                
+                
+                
+                
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    patFrstNm_res = final_response_hdr['mbrDtls']['patFrstNm']
+                    # print(clmId_res)
+                else:
+                    patFrstNm_res = ""
+
+                if i[35] != patFrstNm_res:
+                    field.append("patFrstNm")
+                    daas.append(patFrstNm_res)
+                    hdr.append(i[35])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as patFrstNm3:
+                print("patFrstNm3", patFrstNm3)
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         patMidNm_res = final_response_hdr['mbrDtls']['patMidNm']
+            #         # print(clmId_res)
+            #     else:
+            #         patMidNm_res = ""
+
+            #     if i[17] != patMidNm_res:
+            #         field.append("patMidNm")
+            #         daas.append(patMidNm_res)
+            #         hdr.append(i[17])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as patMidNm3:
+            #     print("patMidNm3", patMidNm3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    patLastNm_res = final_response_hdr['mbrDtls']['patLastNm']
+                    # print(clmId_res)
+                else:
+                    patLastNm_res = ""
+
+                if i[36] != patLastNm_res:
+                    field.append("patLastNm")
+                    daas.append(patLastNm_res)
+                    hdr.append(i[36])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as patLastNm3:
+                print("patLastNm3", patLastNm3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    patBrthDt_res = final_response_hdr['mbrDtls']['patBrthDt']
+                    # print(clmId_res)
+                else:
+                    patBrthDt_res = ""
+
+                if i[37].strftime("%Y-%m-%d") != patBrthDt_res:
+                    field.append("patBrthDt")
+                    daas.append(patBrthDt_res)
+                    hdr.append(i[37])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as patBrthDt3:
+                print("patBrthDt3", patBrthDt3)
+                
+                
+            try:
+                if "patAcctId" in final_response_hdr:
+                    patAcctId_res = final_response_hdr['patAcctId']
+                    # print(clmId_res)
+                else:
+                    patAcctId_res = ""
+
+                if i[38] != patAcctId_res:
+                    field.append("patAcctId")
+                    daas.append(patAcctId_res)
+                    hdr.append(i[38])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as patAcctId3:
+                print("patAcctId3", patAcctId3)    
+                
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    mbrSqncNbr_res = final_response_hdr['mbrDtls']['mbrSqncNbr']
+                    # print(clmId_res)
+                else:
+                    mbrSqncNbr_res = ""
+
+                if int(i[39])!= int(mbrSqncNbr_res):
+                    field.append("mbrSqncNbr")
+                    daas.append(mbrSqncNbr_res)
+                    hdr.append(i[39])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as mbrSqncNbr3:
+                print("mbrSqncNbr3", mbrSqncNbr3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    patRltnshpCd_res = final_response_hdr['mbrDtls']['patRltnshpCd']
+                    # print(clmId_res)
+                else:
+                    patRltnshpCd_res = ""
+
+                if i[40]!= patRltnshpCd_res:
+                    field.append("patRltnshpCd")
+                    daas.append(patRltnshpCd_res)
+                    hdr.append(i[40])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as patRltnshpCd3:
+                print("patRltnshpCd3", patRltnshpCd3)
+                
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    hcId_res = final_response_hdr['mbrDtls']['hcId']
+                    # print(clmId_res)
+                else:
+                    hcId_res = ""
+                
+                
+                if i[41] != hcId_res:
+                    field.append("hcId")
+                    daas.append(hcId_res)
+                    hdr.append(i[41])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as hcId3:
+                print("hcId3", hcId3)    
+                
+                
+                
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         alphPrfxCd_res = final_response_hdr['mbrDtls']['alphPrfxCd']
+            #         # print(clmId_res)
+            #     else:
+            #         alphPrfxCd_res = ""
+
+            #     if i[22]!= alphPrfxCd_res:
+            #         field.append("alphPrfxCd")
+            #         daas.append(alphPrfxCd_res)
+            #         hdr.append(i[22])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as alphPrfxCd3:
+            #     print("alphPrfxCd3", alphPrfxCd3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    grpId_res = final_response_hdr['mbrDtls']['grpId']
+                    # print(clmId_res)
+                else:
+                    grpId_res = ""
+
+                if i[46]!= grpId_res:
+                    field.append("grpId")
+                    daas.append(grpId_res)
+                    hdr.append(i[46])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as grpId3:
+                print("grpId3", grpId3)
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         patGndrCd_res = final_response_hdr['mbrDtls']['patGndrCd']
+            #         # print(clmId_res)
+            #     else:
+            #         patGndrCd_res = ""
+
+            #     if i[24]!= patGndrCd_res:
+            #         field.append("patGndrCd")
+            #         daas.append(patGndrCd_res)
+            #         hdr.append(i[24])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as patGndrCd3:
+            #     print("patGndrCd3", patGndrCd3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    subGrpId_res = final_response_hdr['mbrDtls']['subGrpId']
+                    # print(clmId_res)
+                else:
+                    subGrpId_res = ""
+
+                if i[47]!= subGrpId_res:
+                    field.append("subGrpId")
+                    daas.append(subGrpId_res)
+                    hdr.append(i[47])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as subGrpId3:
+                print("subGrpId3", subGrpId3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    sbscrbrId_res = final_response_hdr['mbrDtls']['sbscrbrId']
+                    # print(clmId_res)
+                else:
+                    sbscrbrId_res = ""
+
+                if i[42]!= sbscrbrId_res:
+                    field.append("sbscrbrId")
+                    daas.append(sbscrbrId_res)
+                    hdr.append(i[42])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as sbscrbrId3:
+                print("sbscrbrId3", sbscrbrId3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    sbscrbrFrstNm_res = final_response_hdr['mbrDtls']['sbscrbrFrstNm']
+                    # print(clmId_res)
+                else:
+                    sbscrbrFrstNm_res = ""
+
+                if i[43]!= sbscrbrFrstNm_res:
+                    field.append("sbscrbrFrstNm")
+                    daas.append(sbscrbrFrstNm_res)
+                    hdr.append(i[43])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as sbscrbrFrstNm3:
+                print("sbscrbrFrstNm3", sbscrbrFrstNm3)
+                
+            # try:
+            #     if "mbrDtls" in final_response_hdr:
+            #         sbscrbrMidNm_res = final_response_hdr['mbrDtls']['sbscrbrMidNm']
+            #         # print(clmId_res)
+            #     else:
+            #         sbscrbrMidNm_res = ""
+
+            #     if i[28]!= sbscrbrMidNm_res:
+            #         field.append("sbscrbrMidNm")
+            #         daas.append(sbscrbrMidNm_res)
+            #         hdr.append(i[28])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as sbscrbrMidNm3:
+            #     print("sbscrbrMidNm3", sbscrbrMidNm3)
+                
+            try:
+                if "mbrDtls" in final_response_hdr:
+                    sbscrbrLastNm_res = final_response_hdr['mbrDtls']['sbscrbrLastNm']
+                    # print(clmId_res)
+                else:
+                    sbscrbrLastNm_res = ""
+
+                if i[44]!= sbscrbrLastNm_res:
+                    field.append("sbscrbrLastNm")
+                    daas.append(sbscrbrLastNm_res)
+                    hdr.append(i[44])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as sbscrbrLastNm3:
+                print("sbscrbrLastNm3", sbscrbrLastNm3)
+                
+                
+                
+            try:
+                if "clmAdjstmntNbr" in final_response_hdr:
+                    clmAdjstmntNbr_res = final_response_hdr['clmAdjstmntNbr']
+                    # print(clmId_res)
+                else:
+                    clmAdjstmntNbr_res = ""
+
+                if int(i[52]) != int(clmAdjstmntNbr_res):
+                    field.append("clmAdjstmntNbr")
+                    daas.append(clmAdjstmntNbr_res)
+                    hdr.append(i[52])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmAdjstmntNbr3:
+                print("clmAdjstmntNbr3", clmAdjstmntNbr3)
+                
+                
+                
+            try:
+                if "clmStatsclInd" in final_response_hdr:
+                    clmStatsclInd_res = final_response_hdr['clmStatsclInd']
+                    # print(clmId_res)
+                else:
+                    clmStatsclInd_res = ""
+
+                if i[53] != clmStatsclInd_res:
+                    field.append("clmStatsclInd")
+                    daas.append(clmStatsclInd_res)
+                    hdr.append(i[53])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as clmStatsclInd3:
+                print("clmStatsclInd3", clmStatsclInd3) 
+                
+                
+            try:
+                if "payeDtl" in final_response_hdr:
+                    payeTypeCd_res = final_response_hdr['payeDtl'][0]['payeTypeCd']
+                    # print(payeTypeCd_res)
+                else:
+                    payeTypeCd_res = ""
+
+                if i[54]!= payeTypeCd_res:
+                    field.append("payeTypeCd")
+                    daas.append(payeTypeCd_res)
+                    hdr.append(i[54])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as payeTypeCd3:
+                print("payeTypeCd3", payeTypeCd3) 
+                
+                
+            try:
+                if "payeDtl" in final_response_hdr:
+                    payeNm_res = final_response_hdr['payeDtl'][0]['payeNm']
+                    # print(payeNm_res)
+                else:
+                    payeNm_res = ""
+
+                if i[55]!= payeNm_res:
+                    field.append("payeNm")
+                    daas.append(payeNm_res)
+                    hdr.append(i[55])
+                    comment.append('Not Matching')
+                    clmevntkey2.append([i[0]])
+            except Exception as payeNm3:
+                print("payeNm3", payeNm3)    
+                
+                
+                
+                
+                
+                
+                
+            # try:
+            #     if "clmClsCd" in final_response_hdr:
+            #         clmClsCd_res = final_response_hdr['clmClsCd']['code']
+            #         # print(clmId_res)
+            #     else:
+            #         clmClsCd_res = ""
+
+            #     if i[33]!= clmClsCd_res:
+            #         field.append("clmClsCd")
+            #         daas.append(clmClsCd_res)
+            #         hdr.append(i[33])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as clmClsCd3:
+            #     print("clmClsCd3", clmClsCd3)
+                
+            # try:
+            #     if "clmSttsCd" in final_response_hdr:
+            #         clmSttsCd_res = final_response_hdr['clmSttsCd']['code']
+            #         # print(clmId_res)
+            #     else:
+            #         clmSttsCd_res = ""
+
+            #     if i[34]!= clmSttsCd_res:
+            #         field.append("clmSttsCd")
+            #         daas.append(clmSttsCd_res)
+            #         hdr.append(i[34])
+            #         comment.append('Not Matching')
+            #         clmevntkey2.append([i[0]])
+            # except Exception as clmSttsCd3:
+            #     print("clmSttsCd3", clmSttsCd3)
+                
+        else:
+            print("Response is not coming for this claim", i[0])
+            missing.append([i[0]])
+            
+            
+    except Exception as e1:
+        print(e1)
+        
+        
+try:
+    if daas_response.status_code == 200:
+        if "Not Matching" in comment:
+            data = ({"Field Name": field, "DaaS": daas ,"EHUB": hdr, "Comments":comment, "clmEvntKey":clmevntkey2})
+            df = pd.DataFrame(data)
+            df.to_excel("C:\\Users\\AL57369\\OneDrive - Elevance Health\\Desktop\\893_comparison_2024_8%"+ str(time.time()) +".xlsx", index = False)
+            print("Excel created")
+        else:
+            print("Everything is matching")
+    else:
+        print("We are not getting status code as 200")
+except Exception as excel:
+        print("Not able to create excel", excel)
+        
+        
+        
+try:
+        if len(missing)>0:
+            data1 = ({"clmEvntKey": missing})
+            df1 = pd.DataFrame(data1)
+            df1.to_excel("C:\\Users\\AL57369\\OneDrive - Elevance Health\\Desktop\\893_comparison_missing_2024_8%"+ str(time.time()) +".xlsx", index = False)
+            print("Excel created")
+        else:
+            print("Everything is matching")
+except Exception as excel1:
+        print("Not able to create excel", excel1)
+
