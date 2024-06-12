@@ -1,0 +1,92 @@
+Project end to end.
+Dimentions & Facts arrangements
+ETL tools using.
+Datawarehouse which one ?
+Project Code Deployment process?
+How you do IL Loads.
+How you perform DL laods.
+
+As a developer what was you day to day activity.
+how you used to design and develope...
+How do you schedule that work...
+
+For application usage or Dimentional modelling...
+
+
+--------------------------------------------------------------------------------------------------
+
+PC Mapings/obects-> IICS migratation.
+- not directly exporting, instead building logic in IICS....   (((( Normalized data : Star Scheama)))  ,,, Denormalized(Snowflake))
+-- why : Logic directly import may be consuming lot of time, may not work, performance change, new bsiness scopes,
+  	  not 1-1 migration,, new advancetage into mapping we are adding.....
+	 PC --> IICS<  ,, equivalent mapping in IICS...
+	 not just pic & drop.......
+
+-- Project 1 : Dimentional modelling : Data for reporting,, view create for reporting team  + F.
+--- P2 : For application usage : AWS RDS MYSQL for application usage... (Operational data for appplications)
+--- Sources : FF, S3 files FF,,, daily basis load,,,, Oracle 12c, 
+--> target : Snowflake............
+
+Why IICS,,,,,,,
+
+
+ETL day to day  : Agile methdeolog we follow, PI plan : 3 months, 1 spring - 2 weeks,,, Story points on requirmentss,,, we develop as per PO 
+		   guidelince,,, 
+		daily analyis, testing and development and requirmnent analysis with peers.... lower environment defect analysis and fixes...
+
+Services IICS : Monitor ( mapping, taskflow status)
+		Integration service to (Design and develop mapping)
+ 
+Code Deployment :  1. IICS mapping object exports and importing in higher environment.. Admin deploy those code...	
+		   2. Enhancement : in Production, we export and provide XML, they import it to prod..
+				    ( GIT : Procedural , DDL & DML objects created in Git) m,,, higher environmenns processes migrated to higher 			through git itself....
+
+
+		Mapping - MCT - Taskflow - Datatask..
+
+How do you create parametetarization in IICS   -- > IICS secure agent where it is installed....
+(through object directly we can use IICS))))
+-> param file we use,,,, those param file it will used in the objects.....
+
+
+Major task -> Data integration task,,, mass ingestion, scynchronization --> Delete the records in snowflake...
+
+Performacr improvement  ;;
+-- > views usage..
+--> only for simplest logics... but for complex,,, through procedure,, and ceating view on top of that....
+
+Work Schedule ??
+--> IICS itself,,, 
+Scheduler we create 
+schedule1  -- > assign that to taskflows....
+
+
+* Stream processing ::
+
+
+Procedures how we creating ??
+---> Procedures  logic 
+ No logic in IICS,, all logics in procedures and just calling that...
+
+--> our company had a plan , to swift to DB2,,, so instead of creating the whole logic agian they have a swift to just call these procedures direcly again in other tool,,, used cursors,, functionsss.... and case statements... etc.....
+
+
+--> 
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
