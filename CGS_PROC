@@ -1,0 +1,152 @@
+DECLARE
+   day_number NUMBER := 1;
+   day_name VARCHAR2(20);
+BEGIN
+   CASE day_number
+      WHEN 1 THEN
+         day_name := 'Monday';
+      WHEN 2 THEN
+         day_name := 'Tuesday';
+      WHEN 3 THEN
+         day_name := 'Wednesday';
+      WHEN 4 THEN
+         day_name := 'Thursday';
+      WHEN 5 THEN
+         day_name := 'Friday';
+      WHEN 6 THEN
+         day_name := 'Saturday';
+      WHEN 7 THEN
+         day_name := 'Sunday';
+      ELSE
+         day_name := 'Invalid day';
+   END CASE;
+
+   DBMS_OUTPUT.PUT_LINE('The day is: ' || day_name);
+END;
+
+
+--  Loop :  For Loop
+DECLARE
+  counter NUMBER := 1;
+BEGIN
+  LOOP
+    DBMS_OUTPUT.PUT_LINE('This is iteration number ' || counter);
+    IF counter = 3 THEN
+      EXIT;
+    END IF;
+    counter := counter + 1;
+  END LOOP;
+END;
+/
+
+
+DECLARE
+   counter NUMBER := 1;  -- Initialize a counter variable
+BEGIN
+   -- Start the WHILE loop
+   WHILE counter <= 5  -- Condition to check
+   LOOP
+      -- Statements to be executed as long as the condition is true
+      DBMS_OUTPUT.PUT_LINE('Counter value: ' || counter);
+      
+      -- Increment the counter
+      counter := counter + 1;
+   END LOOP;  -- End of the loop
+END;
+/
+
+
+-- FUNCTIONS :
+/ first lets create a table
+create table section(s_id int, s_name varchar(20), strength int );
+ 
+// Inserting values into table
+insert into section values(1, 'computer science', 20);
+insert into section values(2, 'portal', 45);
+insert into section values(3, 'geeksforgeeks', 60);
+ 
+// Defining function
+create or replace function totalStrength
+ 
+// Defining return type
+return integer
+as
+total integer:=0;
+ 
+begin                        
+ 
+// calculating the sum and storing it in total 
+select sum(strength) into total from section;
+return total;
+ 
+// closing function
+end totalStrength;
+ 
+set serveroutput on;
+ 
+declare
+answer integer;
+ 
+begin
+answer:=totalstrength();
+   dbms_output.put_line('Total strength of students is  ' || answer);  
+end;
+
+--2
+set serveroutput on;
+declare
+  
+    a int;
+    c int;
+    n int;
+   rev int:=0;
+    r int;
+ 
+// Defining function 
+function reverse_it( x  IN int) 
+return  int
+as
+z int;
+ 
+// function code
+begin
+    n := x;
+         
+    while (n > 0)
+    loop
+        r := mod(n, 10);
+        rev := (rev * 10) + r;
+        n := trunc(n / 10);
+    end loop;
+     
+    z := rev;
+    return z;
+     
+end  ;  
+ 
+BEGIN  
+   a := 123456789;    
+    
+   c := reverse_it(a);  
+   dbms_output.put_line('the reverse of number is  ' || c);  
+ 
+END;  
+
+
+-- Eception Handling ;
+
+DECLARE
+temp varchar(20); 
+
+BEGIN
+SELECT g_id into temp from geeks where g_name='GeeksforGeeks'; 
+
+exception 
+WHEN no_data_found THEN
+	dbms_output.put_line('ERROR'); 
+	dbms_output.put_line('there is no name as'); 
+	dbms_output.put_line('GeeksforGeeks in geeks table'); 
+end; 
+
+
+-- 
