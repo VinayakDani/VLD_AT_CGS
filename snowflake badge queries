@@ -1,0 +1,589 @@
+snowflake.sql
+
+-- Snowflake Queries..
+
+
+-- CHEMA USAGE :
+use database UTIL_DB;
+use schema PUBLIC;
+use role ACCOUNTADMIN;
+------------------------
+
+-- CREATING VIEW :
+create view intl_db.public.NATIONS_SAMPLE_PLUS_ISO ( iso_country_name
+  ,country_name_official
+  ,alpha_code_2digit
+  ,region) AS 
+  select  
+     iso_country_name
+    ,country_name_official,alpha_code_2digit
+    ,r_name as region
+from INTL_DB.PUBLIC.INT_STDS_ORG_3166 i
+left join SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.NATION n
+on upper(i.iso_country_name)= n.n_name
+left join SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.REGION r
+on n_regionkey = r_regionkey;
+
+---------------------------------------------
+list  @util_db.public.like_a_window_into_an_s3_bucket;
+
+-- LIBRARY_CARD_CATALOG.PUBLIC.JSON_FILE_FORMAT 
+
+COPY INTO AUTHOR_INGEST_JSON 
+FROM @util_db.public.like_a_window_into_an_s3_bucket
+FILES = ('author_with_header.json')
+FILE_FORMAT = (format_name = LIBRARY_CARD_CATALOG.PUBLIC.JSON_FILE_FORMAT);
+
+    CREATE FILE FORMAT LIBRARY_CARD_CATALOG.PUBLIC.JSON_FILE_FORMAT 
+    TYPE = 'JSON' 
+    COMPRESSION = 'AUTO' 
+    ENABLE_OCTAL = FALSE
+    ALLOW_DUPLICATE = FALSE 
+    STRIP_OUTER_ARRAY = TRUE
+    STRIP_NULL_VALUES = FALSE 
+    IGNORE_UTF8_ERRORS = FALSE ;
+
+
+    select * from AUTHOR_INGEST_JSON ;
+    truncate table AUTHOR_INGEST_JSON ;
+
+    drop file format JSON_FILE_FORMAT;
+    truncate table author_ingest_json;
+
+    show FILE FORMATS;
+    
+    select raw_author:AUTHOR_NAME
+    from author_ingest_json
+    where raw_author:AUTHOR_UID = '1';
+
+    select raw_author
+    from author_ingest_json;
+    
+    SELECT 
+    raw_author:AUTHOR_UID
+    ,raw_author:FIRST_NAME::STRING as FIRST_NAME
+    ,raw_author:MIDDLE_NAME::STRING as MIDDLE_NAME
+    ,raw_author:LAST_NAME::STRING as LAST_NAME
+    FROM AUTHOR_INGEST_JSON;
+
+
+    select GRADER(step, (actual = expected), actual, expected, description) as graded_results from
+(
+  SELECT 'DWW16' as step
+  ,( select row_count 
+    from LIBRARY_CARD_CATALOG.INFORMATION_SCHEMA.TABLES 
+    where table_name = 'AUTHOR_INGEST_JSON') as actual
+  ,6 as expected
+  ,'Check number of rows' as description
+ ); 
+
+-------------------------------------------------
+
+
+create view simple_currency (CTY_CODE,CUR_CODE)
+as 
+select COUNTRY_CHAR_CODE,CURRENCY_CHAR_CODE from COUNTRY_CODE_TO_CURRENCY_CODE
+;
+-------------------------------------
+-- CREATING A  TABLE :
+create table intl_db.public.CURRENCIES 
+(
+  currency_ID integer, 
+  currency_char_code varchar(3), 
+  currency_symbol varchar(4), 
+  currency_digital_code varchar(3), 
+  currency_digital_name varchar(30)
+)
+  comment = 'Information about currencies including character codes, symbols, digital codes, etc.';
+-----------------------------------
+
+-- FILE FORMAT CREATION :
+create file format util_db.public.CSV_COMMA_LF_HEADER
+  type = 'CSV' 
+  field_delimiter = ',' 
+  record_delimiter = '\n' -- the n represents a Line Feed character
+  skip_header = 1 ;
+;
+
+---------------------------------
+copy into my_table_name
+from @like_a_window_into_an_s3_bucket
+files = ( 'IF_I_HAD_A_FILE_LIKE_THIS.txt')
+file_format = ( format_name='EXAMPLE_FILEFORMAT' );
+
+list @UTIL_DB.PUBLIC.AWS_S3_BUCKET/c;
+
+-- To load into CURRENCIES table
+copy into intl_db.public.CURRENCIES 
+from @AWS_S3_BUCKET
+files = ( 'currencies.csv')
+file_format = ( format_name='CSV_COMMA_LF_HEADER');
+
+
+select count(*) from intl_db.public.CURRENCIES ;
+
+-- to load into currency code
+copy into intl_db.public.COUNTRY_CODE_TO_CURRENCY_CODE 
+from @AWS_S3_BUCKET    --s3://uni-cmcw/country_code_to_currency_code.csv
+files = ( 'country_code_to_currency_code.csv')
+file_format = ( format_name='CSV_COMMA_LF_HEADER');
+
+-------------------------------------
+
+COPY INTO "SMOOTHIES"."PUBLIC"."FRUIT_OPTIONS"
+FROM '@"SMOOTHIES"."PUBLIC"."%FRUIT_OPTIONS"/__snowflake_temp_import_files__/'
+FILES = ('fruits_available_for_smoothies.txt')
+FILE_FORMAT = (
+    TYPE=CSV,
+    SKIP_HEADER=2,
+    FIELD_DELIMITER='%',
+    TRIM_SPACE=FALSE,
+    FIELD_OPTIONALLY_ENCLOSED_BY=NONE,
+    REPLACE_INVALID_CHARACTERS=TRUE,
+    DATE_FORMAT=AUTO,
+    TIME_FORMAT=AUTO,
+    TIMESTAMP_FORMAT=AUTO
+)
+ON_ERROR=ABORT_STATEMENT
+PURGE=TRUE;
+
+--Creating a file format :
+CREATE FILE FORMAT SMOOTHIES.PUBLIC.TWO_GEADERROW_PCT_DELIM
+TYPE=CSV,
+    SKIP_HEADER=2,
+    FIELD_DELIMITER='%',
+    TRIM_SPACE=FALSE,
+    FIELD_OPTIONALLY_ENCLOSED_BY=NONE,
+    REPLACE_INVALID_CHARACTERS=TRUE,
+    DATE_FORMAT=AUTO,
+    TIME_FORMAT=AUTO,
+    TIMESTAMP_FORMAT=AUTO;
+--------------
+-- CREATE TABLE ::
+create or replace TABLE SMOOTHIES.PUBLIC.FRUIT_OPTIONS (
+	FRUIT_ID NUMBER(38,0),
+	FRUIT_NAME VARCHAR(100)
+);
+
+-------------------
+
+
+-- COPY INTO Statement ;
+COPY INTO "SMOOTHIES"."PUBLIC"."FRUIT_OPTIONS"
+FROM '@"SMOOTHIES"."PUBLIC"."%FRUIT_OPTIONS"/__snowflake_temp_import_files__/'
+FILES = ('fruits_available_for_smoothies.txt')
+FILE_FORMAT = (FORMAT_NAME = SMOOTHIES.PUBLIC.TWO_GEADERROW_PCT_DELIM)
+ON_ERROR=ABORT_STATEMENT
+PURGE=TRUE;
+
+---------------------
+-- STAGING, COPYING INTO INTERNAL STAGE
+
+COPY INTO "SMOOTHIES"."PUBLIC"."FRUIT_OPTIONS"
+FROM @smoothies.public.my_internal_stage
+FILES = ('fruits_available_for_smoothies.txt')
+FILE_FORMAT = (FORMAT_NAME = SMOOTHIES.PUBLIC.TWO_HEADERROW_PCT_DELIM)
+ON_ERROR=ABORT_STATEMENT
+VALIDATION_MODE = RETURN_ERRORS
+PURGE=TRUE;
+
+-- ACCESSING THE STAGE, VIEWING FORMAT FROM AN INTERNAL STAGE
+SELECT $1, $2 
+FROM @smoothies.public.my_internal_stage/fruits_available_for_smoothies.txt
+(FILE_FORMAT => smoothies.public.TWO_HEADERROW_PCT_DELIM);
+----------------------------------------
+-- https://docs.snowflake.com/en/user-guide/data-load-transform#reorder-csv-columns-during-a-load
+-- > COPY INTO TABLE, USING THE $1 ATRIBUTE METHODS...
+----------------------------------------
+
+
+-- COPY INTO USING $1, $2 PARAMETERS FROMSTAGE...
+
+COPY INTO "SMOOTHIES"."PUBLIC"."FRUIT_OPTIONS"
+FROM (SELECT $2 AS FRUIT_ID, $1 AS FRUIT_NAME
+FROM @smoothies.public.my_internal_stage/fruits_available_for_smoothies.tx)
+FILE_FORMAT = (FORMAT_NAME = SMOOTHIES.PUBLIC.TWO_HEADERROW_PCT_DELIM)
+ON_ERROR=ABORT_STATEMENT
+PURGE=TRUE;
+
+----------------------------------------
+-- creating a sequence :
+
+create sequence order_seq
+    start = 1
+    increment = 1
+    comment = 'sequecne generator'
+
+
+alter table SMOOTHIES.PUBLIC.ORDERS 
+add column order_uid integer --adds the column
+default smoothies.public.order_seq.nextval  --sets the value of the column to sequence
+constraint order_uid unique enforced;
+
+----------------------------------------
+-- CREATING A TABLE WITH SEQ NUMBER
+create or replace TABLE SMOOTHIES.PUBLIC.ORDERS (
+	INGREDIENTS VARCHAR(200),
+	NAME_ON_ORDER VARCHAR(100),
+	ORDER_FILLED BOOLEAN DEFAULT FALSE,
+	ORDER_UID NUMBER(38,0) DEFAULT SMOOTHIES.PUBLIC.ORDER_SEQ.NEXTVAL,
+	constraint ORDER_UID unique (ORDER_UID)
+);
+
+----------------------------------------
+
+create or replace table smoothies.public.orders (
+       order_uid number(38,0) default smoothies.public.order_seq.nextval,
+       order_filled boolean default false,
+       name_on_order varchar(100),
+       ingredients varchar(200),
+       order_ts timestamp_ltz(9) default current_timestamp(),
+       constraint order_uid unique (order_uid)
+);
+----------------------------------------
+--create and alter :
+
+  alter table SMOOTHIES.PUBLIC.ORDERS
+    add column ORDER_FILLED BOOLEAN DEFAULT FALSE ;
+
+    select * from SMOOTHIES.PUBLIC.ORDERS;
+
+    truncate table SMOOTHIES.PUBLIC.ORDERS;
+
+    update smoothies.public.orders
+       set order_filled = true
+       where name_on_order is null;
+----------------------------------------
+
+-- USER DEFINED FUNCTIONS :
+CREATE OR REPLACE FUNCTION util_db.public.sum_mystery_bag_vars(
+    "this" NUMBER(38,0),
+    "that" NUMBER(38,0),
+    "the_other" NUMBER(38,0))
+RETURNS NUMBER(38,0)
+LANGUAGE SQL
+AS 'select this+that+the_other';
+
+select alternating_caps_phrase
+set  alternating_caps_phrase = 'bUt mOm i wAsHeD tHe dIsHes yEsTeRdAy'
+select initcap($alternating_caps_phrase);
+
+CREATE OR REPLACE FUNCTION util_db.public.NEUTRALIZE_WHINING
+  ( "ABC" TEXT )
+RETURNS TEXT
+LANGUAGE SQL
+as 'select INITCAP($alternating_caps_phrase)'
+
+select function util_db.public.NEUTRALIZE_WHINING
+
+select * from alternating_caps_phrase;
+
+
+select GRADER(step, (actual = expected), actual, expected, description) as graded_results from (
+ SELECT 'DABW007' as step
+ ,( select hash(neutralize_whining('bUt mOm i wAsHeD tHe dIsHes yEsTeRdAy'))) as actual
+ , -4759027801154767056 as expected
+ ,'WHINGE UDF Works' as description
+);
+    
+    
+----------------------------------------
+--- Creating external Stage :  s3://uni-klaus/clothing
+CREATE STAGE UNI_KLAUS_CLOTHING 
+	URL = 's3://uni-klaus/clothing' 
+	DIRECTORY = ( ENABLE = true );
+
+  CREATE STAGE UNI_KLAUS_ZMD 
+	URL = 's3://uni-klaus/zenas_metadata' 
+	DIRECTORY = ( ENABLE = true );
+
+  CREATE STAGE UNI_KLAUS_SNEAKERS 
+	URL = 's3://uni-klaus/sneakers' 
+	DIRECTORY = ( ENABLE = true );
+
+  list @ZENAS_ATHLEISURE_DB;
+
+  -- selecting a column from a stage file :
+  select $1
+  from @uni_klaus_zmd/product_coordination_suggestions.txt; 
+
+  create file format zmd_file_format_1
+  RECORD_DELIMITER = '^';
+
+
+  -- CRLF (Carriage Return Line Feed) as the record delimiter to remove extra spaces :
+
+select REPLACE($1,chr(13)||chr(10)) as sizes_available
+from @uni_klaus_zmd/sweatsuit_sizes
+(file_format => zmd_file_format_2 );
+
+
+-- View Creation :
+
+create view zenas_athleisure_db.products.sweatsuit_sizes as (
+select REPLACE($1,chr(13)||chr(10)) as sizes_available
+from @uni_klaus_zmd/sweatsuit_sizes
+(file_format => zmd_file_format_2 )
+where sizes_available <> '');
+
+create view zenas_athleisure_db.products.SWEATBAND_PRODUCT_LINE as (
+select REPLACE($1,chr(13)||chr(10)) as PRODUCT_CODE, REPLACE($2,chr(13)||chr(10)) as HEADBAND_DESCRIPTION,REPLACE($3,chr(13)||chr(10)) as WRISTBAND_DESCRIPTION
+from @uni_klaus_zmd/swt_product_line.txt
+(file_format => zmd_file_format_2 )
+)
+;
+
+create view zenas_athleisure_db.products.SWEATBAND_COORDINATION as 
+(
+select  REPLACE($1,chr(13)||chr(10)) as PRODUCT_CODE , REPLACE($2,chr(13)||chr(10)) as HAS_MATCHING_SWEATSUIT
+from @uni_klaus_zmd/product_coordination_suggestions.txt
+(file_format => zmd_file_format_3)
+);
+
+-- ZENAS_ATHLEISURE_DB  _> for UNI_KLAUS_CLOTHING
+-- Meta data .png files data from a stage object...
+select metadata$filename, count(metadata$file_row_number)
+from @uni_klaus_clothing
+group by metadata$filename;
+
+---  CSV, JSON, XML, PARQUET, ORC, & AVRO
+-- * Unstruccyured data support...( audio, .png etc)
+
+-- Directory Tables --> To handle unstructured data....
+-- They are attached to a Stage (internal or external).  
+-- You have to enable them. 
+-- You have to refresh them. 
+
+
+select * from directory(@uni_klaus_clothing);
+
+select * from directory(@uni_klaus_clothing);
+
+alter stage uni_klaus_clothing 
+set directory = (enable = true);
+
+
+alter stage uni_klaus_clothing refresh;
+
+
+select UPPER(RELATIVE_PATH) as uppercase_filename
+, REPLACE(uppercase_filename,'/') as no_slash_filename
+, REPLACE(no_slash_filename,'_',' ') as no_underscores_filename
+, REPLACE(no_underscores_filename,'.PNG') as just_words_filename
+from directory(@uni_klaus_clothing);
+
+select 
+ REPLACE(REPLACE(REPLACE(REPLACE(UPPER(RELATIVE_PATH),'/'),'_',' '),'.PNG'),'SWEATSUIT','') as PRODUCT_NAME
+-- , REPLACE(no_slash_filename,'_') as no_underscores_filename
+-- , REPLACE(no_underscores_filename,'.PNG') as product_name
+from directory(@uni_klaus_clothing);
+
+create or replace TABLE ZENAS_ATHLEISURE_DB.PRODUCTS.SWEATSUITS (
+	COLOR_OR_STYLE VARCHAR(25),
+	DIRECT_URL VARCHAR(200),
+	PRICE NUMBER(5,2)
+);
+
+
+insert into  ZENAS_ATHLEISURE_DB.PRODUCTS.SWEATSUITS 
+          (COLOR_OR_STYLE, DIRECT_URL, PRICE)
+values
+('90s', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/90s_tracksuit.png',500)
+,('Burgundy', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/burgundy_sweatsuit.png',65)
+,('Charcoal Grey', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/charcoal_grey_sweatsuit.png',65)
+,('Forest Green', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/forest_green_sweatsuit.png',65)
+,('Navy Blue', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/navy_blue_sweatsuit.png',65)
+,('Orange', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/orange_sweatsuit.png',65)
+,('Pink', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/pink_sweatsuit.png',65)
+,('Purple', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/purple_sweatsuit.png',65)
+,('Red', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/red_sweatsuit.png',65)
+,('Royal Blue',	'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/royal_blue_sweatsuit.png',65)
+,('Yellow', 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing/yellow_sweatsuit.png',65);*9
+
+
+select color_or_style
+, direct_url
+, price
+, size as image_size
+, last_modified as image_last_modified
+from sweatsuits s
+join directory(@uni_klaus_clothing) d
+on  d.relative_path = replace(s.direct_url, 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing');
+
+
+
+-- Cartision Product :
+select color_or_style
+, direct_url
+, price
+, size as image_size
+, last_modified as image_last_modified
+from sweatsuits s
+join directory(@uni_klaus_clothing) d
+on  d.relative_path = replace(s.direct_url, 'https://uni-klaus.s3.us-west-2.amazonaws.com/clothing');
+
+
+-------------streamlit app deploy :
+# .streamlit/secrets.toml
+
+[connections.snowflake]
+account = "MGYKXFX-TG99297"
+user = "VinayakDani"
+password = "Mahadev%2912"
+role = "SYSADMIN"
+warehouse = "COMPUTE_WH"
+database = "SMOOTHIES"
+schema = "PUBLIC"
+client_session_keep_alive = true
+
+------------------------------
+
+
+---- Creatng View, from External stage need not necessorly load the data, can create stage objects and can join with internal stage and unstructurred data 
+--- can also be handled well with directory tables....from which can be accessed .png and unstructured data...
+
+-- STAGE CREATE
+
+CREATE STAGE TRAILS_PARQUET 
+	URL = 's3://uni-lab-files-more bucket/dlkw/trails_parquet' 
+	DIRECTORY = ( ENABLE = true );
+
+  CREATE STAGE TRAILS_GEOJSON 
+	URL = 's3://uni-lab-files-more/dlkw/trails_geojson' 
+	DIRECTORY = ( ENABLE = true );
+
+-- ## JSON File Format :
+
+CREATE FILE FORMAT MELS_SMOOTHIE_CHALLENGE_DB.TRAILS.FF_JSON 
+    TYPE = 'JSON' 
+    COMPRESSION = 'AUTO' 
+    ENABLE_OCTAL = FALSE
+    ALLOW_DUPLICATE = FALSE 
+    STRIP_OUTER_ARRAY = TRUE
+    STRIP_NULL_VALUES = FALSE 
+    IGNORE_UTF8_ERRORS = FALSE ;
+
+-- ## PARQUET FILE FORMAT :
+    CREATE FILE FORMAT MELS_SMOOTHIE_CHALLENGE_DB.TRAILS.FF_PARQUET 
+    TYPE = 'PARQUET' 
+    COMPRESSION = 'AUTO' ;
+
+
+
+    select $1
+    from @trails_parquet
+    (file_format=> ff_parquet);
+
+-- # selecting a JSON File format query from a file :
+select 
+ $1:sequence_1 as point_id,
+ $1:trail_name::varchar as trail_name,
+ $1:latitude::number(11,8) as lng, --remember we did a gut check on this data
+ $1:longitude::number(11,8) as lat
+from @trails_parquet
+(file_format => ff_parquet)
+order by point_id;
+
+
+-- ## VIEW Creation :
+
+create or replace view CHERRY_CREEK_TRAIL as 
+(
+select 
+ $1:sequence_1 as point_id,
+ $1:trail_name::varchar as trail_name,
+ $1:latitude::number(11,8) as lng, --remember we did a gut check on this data
+ $1:longitude::number(11,8) as lat
+from @trails_parquet
+(file_format => ff_parquet)
+order by point_id
+);
+
+
+create or replace view cherry_creek_trail as
+select 
+ $1:sequence_1 as point_id,
+ $1:trail_name::varchar as trail_name,
+ $1:latitude::number(11,8) as lng,
+ $1:longitude::number(11,8) as lat,
+ lng||' '||lat as coord_pair
+from @trails_parquet
+(file_format => ff_parquet)
+order by point_id;
+
+-- > 
+select 
+'LINESTRING('||
+listagg(coord_pair, ',') 
+within group (order by point_id)
+||')' as my_linestring
+from cherry_creek_trail
+where point_id <= 10
+group by trail_name;
+
+
+-- JSON DATA Normalising ::
+
+select
+$1:features[0]:properties:Name::string as feature_name
+,$1:features[0]:geometry:coordinates::string as feature_coordinates
+,$1:features[0]:geometry::string as geometry
+,$1:features[0]:properties::string as feature_properties
+,$1:crs:properties:name::string as specs
+,$1 as whole_object
+from @trails_geojson (file_format => ff_json);
+
+
+create or replace view DENVER_AREA_TRAILS as(
+select
+$1:features[0]:properties:Name::string as feature_name
+,$1:features[0]:geometry:coordinates::string as feature_coordinates
+,$1:features[0]:geometry::string as geometry
+,$1:features[0]:properties::string as feature_properties
+,$1:crs:properties:name::string as specs
+,$1 as whole_object
+from @trails_geojson (file_format => ff_json));
+
+
+select feature_name
+, to_geography(geometry) as my_linestring
+, st_xmin(my_linestring) as min_eastwest
+, st_xmax(my_linestring) as max_eastwest
+, st_ymin(my_linestring) as min_northsouth
+, st_ymax(my_linestring) as max_northsouth
+from DENVER_AREA_TRAILS
+union all
+select feature_name
+, to_geography(geometry) as my_linestring
+, st_xmin(my_linestring) as min_eastwest
+, st_xmax(my_linestring) as max_eastwest
+, st_ymin(my_linestring) as min_northsouth
+, st_ymax(my_linestring) as max_northsouth
+, trail_length
+from DENVER_AREA_TRAILS_2;
+
+
+
+
+create or replace view V_CHERRY_CREEK_TRAIL(
+	POINT_ID,
+	TRAIL_NAME,
+	LNG,
+	LAT,
+	COORD_PAIR
+) as
+select 
+ $1:sequence_1 as point_id,
+ $1:trail_name::varchar as trail_name,
+ $1:latitude::number(11,8) as lng,
+ $1:longitude::number(11,8) as lat,
+ lng||' '||lat as coord_pair
+from @trails_parquet
+(file_format => ff_parquet)
+order by point_id;
+
+SELECT /*+PARALLEL(4)*/ COUNT(*)
+-- CLM_EVNT_KEY, SOR_CD, RCRD_CREATD_TMS, RCRD_CREATD_USER_ID
+FROM EHUB_CLM_SDS.EHUB_CLM_EVNT
+WHERE  EXTRACT(YEAR FROM RCRD_CREATD_TMS)  > 2020
+AND SOR_CD ='822'
