@@ -608,7 +608,7 @@ snowsql -- Command line interface to interact with snowflake..
 Snowflake fundamentals ;
 1. Snowflake Warehouses  
 	- ( virtual data warehouses to process the SQL statements that you execute.
-	- Overview of Warehouses
+	- Snowflake Warehouses overview....
 	- Multi-cluster Warehouses
 	- Warehouse Considerations 
 	- Working with Warehouse.
@@ -630,12 +630,88 @@ Snowflake fundamentals ;
 	- Date & Time Data Types
 	- Geospatial Data Types
 
-*** Getting data in to Snowflake **
+*** Getting data in to Snowflake **   (Data load to sbowflake)
 	- Understanding Data loading into snowflake..( Tasks, tools , techniques )
 	- Bulk Loading ( COPY command to load the data directly on demand from S3 bucket, or other storage container into snowflake )
 	- Snowpipe ( Load Data automatically as soon as it arrives)
-	- 
-	-	
-	-
+
+* Views, Materialized Views, & Dynamic Tables
+* Streams and tasks make executing complex task based solutions simple and easy.
+  Streams allow you to track changes to database objects and tasks provide a mechanism to then execute SQL when those events occur...
+* share data products privately, or use a direct share to quickly share data with someone in the same region.
+* Listing -> Provide data and other information to other snowflake user,,, share data and access others shared...
+* Sharing data from one snowflake account to anothe snowflake account....
+
+
+? Snowflake Horizon
+- Define and assign aggregation policies and projection policies to control what type of queries can be run against shared data.
+  Aggregation policies require analysts to run queries that aggregate data rather than retrieving individual rows.
+  Projection policies control whether an analyst can use a SELECT statement to project a particular column.
+
+Snowflake DataHorizon helps  to do,,,,
+View object insights [3] using a user interface that lets you learn information about tables and views without writing SQL. 
+You can determine who is accessing the data, the queries that access the data most frequently, whether someone has been modifying 
+the governance posture of the data, whether there are downstream or upstream dependencies on the data, and whether the data has been 
+classified as sensitive.
+
+??? 
+How to connect to snowflake : Interact with Snowflake DB
+- Snowsight, SnowSQL(Snowflake command-line client) and the Snowflake Classic Console., Snowflake Extension for Visual Studio Code
+- Snowflake-provided clients, including SnowSQL (command line interface), connectors for Python and Spark, and drivers for Node.js,
+  JDBC, ODBC, and more.
+
+???
+ Snowflake has partenered to connect with other technogy connectivity like datadog through JDBC , ODBC connectivity...
+
+Snowflake DataIntegration :
+--> Following ELT process, 
+
+Dataintegration include  --> Data Preparation, Migration, Movement, managment,., data movement automation...
+
+???
+Load data from AWS S3 to Snoflake using push down optimization ;
+
+https://quickstarts.snowflake.com/guide/harness_the_power_of_snowflake_with_informatica_idmc/#7
+
+???
+Semistructured JSON data to Snowflake :
+https://quickstarts.snowflake.com/guide/harness_the_power_of_snowflake_with_informatica_idmc/#9
+
+
+
+---- Userole, Usewarehouse, UseSchema ----- 
+
+-- Set the correct ROLE, WAREHOUSE, and SCHEMA
+use role PC_INFORMATICA_ROLE;
+use warehouse PC_INFORMATICA_WH;
+use schema PC_INFORMATICA_DB.PUBLIC;
+
+-- JSONData ,,, VARIENT Datatype for JSON stage data access..
+-- Createtable
+create or replace table pc_informatica_db.public.daily_14_total (
+  v variant,
+  t timestamp);
+
+-- Define a stage that describes where the data will be loaded from
+-- CreateStage
+create or replace stage weather_data_s3
+  url = 's3://sfquickstarts/VHOL Informatica Data Management/WEATHER/';
+
+-- Re-size the warehouse so we can load the data quicker
+-- Alterwarehouse
+alter warehouse pc_informatica_wh set warehouse_size = large;
+
+--CopyDatafromstage
+-- Load the data
+copy into daily_14_total
+   from (select $1, to_timestamp($1:time)
+   from @weather_data_s3)
+   file_format = (type=json);
+   
+-- Set the warehouse back to the original size
+--AlterWarehouse...
+alter warehouse pc_informatica_wh set warehouse_size = xsmall;
+
+
 
 
