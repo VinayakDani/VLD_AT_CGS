@@ -994,7 +994,195 @@ COPY Statements
 --> Bulk Loading Data...
 --> Snowpipe  : to continously load micro-batches of data into staging tables for transformation 
 		and optimization using automated tasks and the 
-		change data capture (CDC) information : --> Using Streams....
+--> change data capture (CDC) information : --> Using Streams....
+
+
+Snowpipe to load “raw” data into a staging table and then uses a series of table streams and tasks to transform and optimize
+the new data for analysis.
+
+
+**********************************************************
+Continuous loading using Snowpipe Streaming¶
+**********************************************************
+ * Snowpipe Streaming API writes rows of data directly to Snowflake tables without the requirement of staging files...
+ * Lower load latencies with corresponding lower costs for loading any volume of data, which makes it a powerful tool
+  for handling near real-time data streams.
+
+* Snowpipe Streaming is also available for the Snowflake Connector for Kafka, which offers an easy upgrade path 
+ to take advantage of the lower latency and lower cost loads.
+
+
+***********************************************************
+Loading data from Apache Kafka topics,,,
+***********************************************************
+* The Snowflake Connector for Kafka enables users to connect to an Apache Kafka server,
+	read data from one or more topics, and load that data into Snowflake tables.
+
+
+***********************************************************
+* JSON Semistructured data into a single column,,, 
+* External stage semistructured data direct load into a single column ,,, Varient...
+* or loading into more than one columns..
+
+
+******
+* Querying external stage data qithout actually querying it from external stage,,,
+* Data sets materialized in Snowflake via materialized views are read-only.
+
+Materilized view on external storage beneficial  
+:: when Large amount of data stored in external stage,, only specific recent data is needed
+	we go with view...
+
+
+***********************************************************
+Compression of staged files¶
+***********************************************************
+When staging uncompressed files in a Snowflake stage, the files are automatically compressed using gzip, 
+unless compression is explicitly disabled.
+
+
+Encryption of staged files¶
+***********************************************************
+All files stored on internal stages for data loading and unloading operations are automatically encrypted 
+using AES-256 strong encryption on the server side.
+
+
+Data loading considerations :
+***********************************************************
+Preparing your data files
+Planning a data load
+Staging data
+Loading data
+Managing regular data loads
+
+
+File sizing best practices and limitations...
+***********************************************************
+* The number of load operations that run in parallel cannot exceed the number of data files to be loaded.
+* parallel operations for a load, data files roughly 100-250 MB (or larger) in size compressed.
+* Loading very large files not recomnded....
+* Aborting or skipping a file due to a small number of errors could result in delays and wasted credits. In addition,
+if a data loading operation continues beyond the maximum allowed duration of 24 hours, it could be aborted without any 
+portion of the file being committed.
+
+* Split larger files into a greater number of smaller files to distribute the load among the compute resources in an active warehouse.
+
+Spilt file Command ;
+split -l 100000 pagecounts-20151201.csv pages
+
+***********************************************************
+Semi-structured data size limitations
+***********************************************************
+A VARIANT can have a maximum size of up to 16 MB of uncompressed data.
+
+>16 MB,,, STRIP_OUTER_ARRAY file format option for the COPY INTO <table> command to remove the outer array
+structure and load the records into separate table rows:
+
+COPY INTO TABLE_A
+  FROM @~/filename.json
+  FILE_FORMAT = (TYPE = 'JSON' STRIP_OUTER_ARRAY = true);
+
+---> Loads the data into seperate row..
+
+************************************************************
+create an external stage: 
+CREATE STAGE my_stage URL='s3://mybucket/United_States/California/Los_Angeles/'
+CREDENTIALS=(AWS_KEY_ID='1a2b3c' AWS_SECRET_KEY='4x5y6z');
+
+PUT file:///data/mydata.csv @%t1/United_States/California/Los_Angeles/2016/06/01/11/
+
+Copy from external stage :
+COPY INTO t1 from @%t1/United_States/California/Los_Angeles/2016/06/01/11/
+  FILES=('mydata1.csv', 'mydata1.csv');
+
+COPY INTO t1 from @%t1/United_States/California/Los_Angeles/2016/06/01/11/
+  PATTERN='.*mydata[^[0-9]{1,3}$$].csv';
+
+************************************************************
+
+Pattern Matching (File pattern matching )
+******************************************
+COPY INTO people_data FROM @%people_data/data1/
+   PATTERN='.*person_data[^0-9{1,3}$$].csv';
+
+
+
+*************************************************************
+File Duplicaton... Copy Commnad... Avoid Duplication
+*************************************************************
+* SNowflakes load status in the table metadata prevents parallel COPY statements from loading the same files into a table..
+  there by aviods duplications..
+* When processing of the COPY statement is completed, Snowflake adjusts the load status for the data files as appropriate. 
+If one or more data files fail to load, Snowflake sets the load status for those files as load failed. These files are available
+for a subsequent COPY statement to load.
+* Based on load status of the files,,, From metadata call, it prevents the duplications..
+
+*****************************
+Snowflake maintains detailed metadata for each table into which data is loaded, including:
+Name of each file from which data was loaded
+File size
+ETag for the file
+Number of rows parsed in the file
+Timestamp of the last load for the file
+Information about any errors encountered in the file during loading...
+
+************ load metadata expires after 64 days.*****************
+_---> 
+
+SON data: Removing “null” values¶
+STRIP_NULL_VALUES to TRUE for the COPY INTO <table>
+
+************************************************
+remove leading spaces :
+COPY INTO mytable
+FROM @%mytable
+FILE_FORMAT = (TYPE = CSV TRIM_SPACE=true FIELD_OPTIONALLY_ENCLOSED_BY = '0x22');
+
+SELECT * FROM mytable;
+
+***************************************************
+Partitioning staged data files¶
+ *partition the data in your internal , or external locationssing logical, granular paths. Create a partitioning structure
+ that includes identifying details such as application or location, along with the date when the data was written
+
+* copy data into Snowflake by the hour, day, month, or even year when you initially populate tables.
+
+s3://bucket_name/application_one/2016/07/01/11/
+
+s3://bucket_name/application_two/location_one/2016/07/01/14/
+
+****************************************************
+Stage File into a Internal Stage :
+PUT file:///tmp/file_20160701.11*.csv @my_stage/<application_one>/<location_one>/2016/07/01/11/;
+
+****************************************************
+
+PURGE :
+Delete the loaded filles :
+Files that were loaded successfully can be deleted from the stage during a load by specifying the PURGE 
+copy option in the COPY INTO <table> command.  or using REMOVE command..
+
+
+Load History on file :
+Review the data loading activity that has occurred over the last 14 days for a specific table in a database by 
+using the Copy History details for the table in Snowsight or the COPY_HISTORY table function.
+
+COPY_HISTORY(
+      TABLE_NAME => '<string>'
+       , START_TIME => <constant_expr>
+      [, END_TIME => <constant_expr> ] )
+
+select *
+from table 
+(information_schema.copy_history(TABLE_NAME=>'MYTABLE', START_TIME=> DATEADD(hours, -1, CURRENT_TIMESTAMP())));
+
+*****************************************************
+
+
+
+
+
+
 
 
 
