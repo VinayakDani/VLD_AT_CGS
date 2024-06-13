@@ -1,2 +1,161 @@
 Runtime environment?
 - environment is the execution platform that runs a  data integration or  application integration tasks.
+- sever upon which your data gets staged while processing.
+- Informatica  Cloud Hosted Agent, Serverless runtime environment
+
+What is a Synchronization task?
+Synchronization task helps you synchronize data between a source and target.  use of any transformations like in mappings.
+Transform the data before loading it into the target.
+
+What is a Replication task?
+Replication task copies the entire scheme and all tables from source to target..Replication task can be done through this....
+replicate all the source rows or the rows that changes since the last runtime of the task using built in Incremental processing mechanism of Replication Task.
+--> Can replicate the data from source to target without transforming the data.
+ Incremental load after initial full load
+→ Incremental load after initial partial load
+→ Full load each run...
+
+-> Incremental and hostory load processing we have directly used Replication tasks...
+
+--> If any mappping changes needed fron source to targte and any additional mapping need to be added in such cases we have designed with new mapping...
+
+
+Where does the metadata of tasks gets stored in Informatica ?
+-   tadata gets stored in the Informatica  Cloud repository.
+
+IICS repository that stores various information about tasks. 
+
+
+What is a Mapping Configuration task?
+- Configuration Task or Mapping Task is analogous to a session in Informatica Powercenter. When you create a Mapping Task, you must select a mapping to use in the task
+Optionally, you can define the following in the Mapping Task
+→ You can define parameters that associate with the mapping.
+→ Define pre and post-processing commands.
+→ Add advance session properties to boost the performance.
+→ Configure the task to run on schedule.
+
+9. What is a taskflow in Informatica  Cloud?
+A Taskflow is analogous to a workflow in Informatica Powercenter. A taskflow controls the execution sequence of a mapping configuration task or a synchronization task based on the output of the previous task. To create a taskflow, you must first create the tasks and then add them to a taskflow.
+The taskflow allows you to
+→ Run the tasks sequentially
+→ Run the tasks in parallel
+→ Make decisions based on outcome from one task before triggering the next task.
+
+
+10. What is the difference between a Taskflow and Linear Taskflow? 
+A Linear taskflow is a simplified version of the  Data Integration taskflow. A linear taskflow groups multiple  Data Integration tasks and runs them serially in the specified order. If a task defined in Linear taskflow gets failed, you need to restart the entire taskflow. However, a taskflow allows you to run the tasks in parallel, provides advanced decision making capabilities and allows you to either restart from failed task or skip it when a task fails.
+
+11. Can we run Powercenter jobs in Informatica  cloud?  -- Yes, Powercenter task...
+
+12. How does an Update Strategy transformation work in Informatica  Cloud?
+There is no Update strategy transformation available in Information Cloud. In the target transformation in a mapping, Informatica
+Cloud  Data Integration provides the option for the action to be performed on the target – Insert, Update, Upsert, Delete and Data Driven.
+
+14. What is Dynamic Linking?
+Informatica  Cloud Data Integration allows you to create a new target files/tables at runtime. To use this feature in mappings, choose Create New at Runtime option in target and specify the
+name for the new target.
+The user can choose a static filename where the target file will be replaced by a new file every time the mapping runs. The user can also choose to create a Dynamic filename so 
+that the every time the mapping runs, target file is created with a new name.
+
+15. In what format can you export a task present in Informatica  Cloud?
+Informatica Cloud  Data Integration supports exporting the tasks as a zip file where the metadata gets stored in the JSON format inside the zip file. However you can also download a XML version of the tasks also which can be imported as workflows in Powercenter. But it will not support 
+bulk export of tasks in XML format at a time. Where as you can export multiple tasks in form of JSON in a single export zip file.
+
+16. How do you read JSON Source file in IICS?
+JSON files are read using the Hierarchy Parser transformation present in IICS. The user needs to define a Hierarchical Schema that defines the expected hierarchy of the JSON file. The Hierarchical Schema can then be imported into
+Hierarchy Parser transformation while reading the data from input JSON files which converts the input based on the schema that is associated with the transformation. The Hierarchy Parser Transformation can also be used to read XML files in Informatica  Cloud  Data Integration
+
+
+18. What is Indirect File loading and how to perform Indirect loading in IICS?
+The ability to process multiple source files of same structure and properties through a single source transformation in a mapping is called Indirect File Loading. In order to perform Indirect loading in IICS, 
+prepare a flat file which holds the information of all source filenames which share same file structure and properties. Pass this file as source file and select the File List under Source Type property 
+of a source transformation in a mapping. The data from all the files listed in the source file will be processed in a single run.
+
+Mapping Parameter --> Argument that we pass during eun time ...Value remain constanr through out session run....
+
+
+19. What are the parameter types available in the Informatica  Cloud?
+You can add parameters to mappings to create flexible mapping templates that developers can use to create multiple mapping configuration tasks. IICS supports two types of parameters.
+Input Parameter: Similar to a parameter in Powercenter. You can define an input parameter in a mapping and set the value of the parameter when you configure a mapping task. 
+The parameter value remains constant as the value defined in mapping task or a Parameter file through out the session run.
+In-Out Parameter: Similar to a variable in Powercenter. Unlike input parameters, an In-Out parameter can change each time a task runs. When you define an In-Out parameter,
+you can set a default value in the mapping. However, you would typically change the value of In-Out Parameter at run time using an Expression transformation using SETVARIABLE functions.
+The mapping saves the latest value of the parameter after the successful completion of the task. So, when the task runs again,
+the mapping task compares the In-Out parameter to the saved value instead of default value.
+
+20. How many Status states are available in IICS monitor?
+The various status states available in IICS are
+Starting: Indicates that the task is starting.
+Queued: There is a predefined number set which controls how many tasks can run together in your IICS org. If the value is set to two and if two jobs are already running, the third task you trigger enters into Queued state.
+Running: The job enters the Running status from Queued status once the task is triggered completely.
+Success: The task completed successfully without any issues.
+Warning: The task completed with some rejects.
+Failed: The task failed due to some issue.
+Stopped: The parent job has stopped running, so the subtask cannot start. Applies to subtasks of replication task instances.
+Aborted: The job was aborted. Applies to file ingestion task instances.
+Suspended: The job is paused. Applies to taskflow instances.
+
+23. What are Preprocessing and Postprocessing commands in IICS?
+The Preprocessing and postprocessing commands are available in the Schedule tab of tasks to perform additional jobs using SQL commands or Operating system commands.
+The task runs preprocessing commands before it reads the source. It runs postprocessing commands after it writes to the target. The task fails if If any command in the preprocessing
+or postprocessing scripts fail.
+
+Field Name conflicts in IICS  --> renaming the fields in the upstream transformation,  or Bulk Rename fields by adding a prefix or a suffix to all incoming fields.
+
+25. What system variables are available in IICS to perform Incremental Loading?
+IICS provides access to following system variables which can be used as a data filter variables to filter newly inserted or updated records.
+$LastRunTime returns the last time when the task ran successfully.
+$LastRunDate returns only the last date on which the task ran successfully. The values of $LastRunDate and $Lastruntime get stored in Informatica  Cloud repository/server
+and it is not possible to override the values of these parameters. These parameters store the datetime value in UTC time zone.
+
+Sequence generator with incoming fields not disabled will generate same sequence of numbers for each downstream transformation.
+→ Sequence generator with incoming fields disabled will generate Unique sequence of numbers for each downstream transformation.
+
+
+27. Explain Partitioning in Informatica  Cloud  Data Integration.
+Partitioning is nothing but enabling the parallel processing of the data through separate pipelines. With the Partitioning enabled, you can select the number of partitions
+for the mapping. The DTM process then creates a reader thread, transformation thread and writer thread for each partition allowing the data to be processed concurrently,
+thereby reducing the execution time of the task. Partitions can be enabled by configuring the Source transformation in mapping designer.
+There are two major partitioning methods supported in Informatica  Cloud  Data Integration.
+1. Key Range Partitioning distributes the data into multiple partitions based on the partitioning key selected and range of the values defined for it. You must select a field as a partitioning
+key and defined the start and end ranges of the value.
+2. Fixed Partitioning can be enabled for sources which are not relational or support key range partitioning. You must select the number of partitions by passing a value.
+
+28. How to pass data from one mapping to other in Informatica  Cloud  Data Integration?
+The data can be passed from one Mapping task to another in Informatica  Cloud  Data Integration through a Task flow using parameters. The Mapping Task which passes the data 
+should have an In-Out Parameter defined using SetVariable functions. The Mapping Task which receives the data should either have an Input parameter or an In-Out Parameter defined 
+in the mapping to read the data passed from upstream task.
+
+29. What is Informatica Cloud Secure Agent?
+Informatica Cloud Secure Agent is a light weight, self-upgrading program that you need to install in your server and register it with Informatica Cloud repository using the unique registration 
+code provided for your organization account. It runs all tasks and enables secure communication across the firewall between your organization and Informatica Intelligent  Cloud Services.
+
+Secure agent Runtime Environments page created and given to us by Administrator Service, it will be created on a org level...
+
+32. What are the advantages of secure agent group with multiple agents?
+Load Balancing – Balance the workload across machines:
+Add multiple agents to a group to balance the distribution of tasks across machines. When the runtime environment is a Secure Agent group with multiple agents, 
+the execution of tasks will be distributed to various agents in the agent group in round-robin fashion automatically. It’s not possible to override the task assignment and the agent
+gets assigned in round-robin fashion automatically.
+High Availability – Improve scalability for connections and tasks:
+When you create a connection or task, you select the runtime environment to use. If the runtime environment is a Secure Agent group with multiple agents, 
+the tasks can run if any Secure Agent in the group is up and running. You do not need to change connection or task properties when you add or remove an agent or if an agent in the group stops running.
+
+
+33. Explain what is Pushdown Optimization in Informatica  Cloud?
+Pushdown Optimization is a performance tuning technique where the transformation logic is converted into SQL and pushed towards either source  database or target  database or both. 
+The amount of data transformation logic that can be pushed to the database depends on the database type, transformation logic, mapping task configuration.
+
+
+Processing data on database level is much faster and efficient compared to processing the data in Informatica and Pushdown Optimization helps in achieving this in Informatica  Cloud. Informatica processes all transformation logic at Informatica level that it cannot push to a database.
+
+
+4. What is a Dynamic Mapping Task?
+A Dynamic Mapping Task allows you to create and group multiple jobs within the single asset that process data based on the data flow logic defined in a mapping. Instead of creating multiple mapping tasks, you can configure multiple jobs based on the same mapping in one task.
+A Dynamic mapping task reduces the number of assets that you need to manage if you want to reuse a parameterized mapping.
+
+
+35. What is Informatica  Cloud Debugger?
+
+
+  
