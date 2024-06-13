@@ -588,4 +588,54 @@ SELECT /*+PARALLEL(4)*/ COUNT(*)
 -- CLM_EVNT_KEY, SOR_CD, RCRD_CREATD_TMS, RCRD_CREATD_USER_ID
 FROM EHUB_CLM_SDS.EHUB_CLM_EVNT
 WHERE  EXTRACT(YEAR FROM RCRD_CREATD_TMS)  > 2020
-AND SOR_CD ='822'
+AND SOR_CD ='822';;;;
+
+
+-------------------------------------------------------------------------------------
+----------- Snowflake Developer Guide -------------
+
+Snowflake :
+-  connecting to Snowflake and executing database commands.
+-  Command line tool to connect to your Snowflake account.
+
+snowsql -- Command line interface to interact with snowflake..
+
+1. WebInterface
+2. Command line
+3. Connectors...
+
+
+Snowflake fundamentals ;
+1. Snowflake Warehouses  
+	- ( virtual data warehouses to process the SQL statements that you execute.
+	- Overview of Warehouses
+	- Multi-cluster Warehouses
+	- Warehouse Considerations 
+	- Working with Warehouse.
+	- Using the Query Acceleration Service.
+
+2. Basics of Snowflake Tables and Views
+	- Understanding Snowflake Table Structures
+	- Table Design Considerations	
+	- Overview of Views	
+	- Working with Secure Views
+	- Cloning Considerations
+	- Table Storage Considerations
+
+3. Basics of Data Types
+	- Introduction to Snowflake Data Types
+	- Numeric Data Types
+	- String and Binary Data Types	
+	- Logical Data Types	
+	- Date & Time Data Types
+	- Geospatial Data Types
+
+*** Getting data in to Snowflake **
+	- Understanding Data loading into snowflake..( Tasks, tools , techniques )
+	- Bulk Loading ( COPY command to load the data directly on demand from S3 bucket, or other storage container into snowflake )
+	- Snowpipe ( Load Data automatically as soon as it arrives)
+	- 
+	-	
+	-
+
+
