@@ -1,7 +1,7 @@
 Honeywell
 
 table A
-    1
+    	  1
 	  0
 	  1
 	 null
@@ -9,7 +9,7 @@ table A
 	 null
 	 
    table B
-    1
+          1
 	  0
 	  2
 	 null
@@ -18,23 +18,23 @@ table A
 	 null
 	 
 2. 
-ID		StudentName
-1		    A
+ID	StudentName
+1       A
 2       B
 3       C
 4       D
 5       E
 
 O/P :- 
-    ID	StudentName
-    1   B
+    		ID  StudentName
+   		1   B
 		2   A
 		3   D
 		4   C
 		5   E
 --  > in oracle we have lead () function.
 
-Ans :
+Ans : For Swap,,, 
 SELECT month,
   sales,
   LEAD(sales, 1, "NA") OVER(
@@ -52,13 +52,13 @@ month	sales
 7	    300
 8	    500
 9	    700
-10	  800
-11	  1000
-12	  1250
+10	    800
+11	    1000
+12	    1250
 
 
-month	sales	next_month_sales
-1		1000	500
+month		sales	 	next_month_sales
+1		1000	 	500
 2		500		750
 3		750		800
 4		800		500
