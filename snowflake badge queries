@@ -720,6 +720,289 @@ alter warehouse pc_informatica_wh set warehouse_size = xsmall;
    another inner join to join the depedency data and load into snowflake single target....
 -- Mapping task to schedule it and load...
 
+************************************************
+SQL development and data querying interfaces:
+************************************************
+Snowsight Worksheets  - Browser based editing & development...
+SnowSQL   - Python-based client for performing all tasks in Snowflake, including querying, 
+	    executing DDL/DML commands, and bulk loading/unloading of data.
+Snowflake Extension for Visual Studio Code
+
+.net, JDBC, ODBC, Pyhton drivers can be connected to snowflake for building...    --> Githib connectivity to python schema for deployments and all...
+
+************************************************
+Signing in to Snowsight  : UI
+Working with Snowflake
+- account identifier or account URL  (<orgname>.<account_name> )
+- orgname
+- Account_name
+- cloud_region_id ( Region where snowflake is hosted , AWS)
+- nowflake credentials-
+
+Switch Role :  active role in your current session.Access of DB, Tables Access, Objects access, actions can be performed..
+
+ACCOUNTADMIN
+SYSADMIN
+PUBLIC
+
+Navigation :
+Create -> SQL Worksheet, Python Worksheet, Streamlit App, Dashboard, Table, Stage, or View. 
+Projects -> Worksheets, Notebooks, Streamlit, Dashboards, App Packages
+Data -> Databases, and Add Data.
+Data Products -> Marketplace, Apps, Private Sharing, Provider Studio.
+Monitoring -> Query History, Copy History, Task History, Dynamic Tables, Trust Center, and Governance.
+
+************************************************
+Working with Snowflake
+************************************************
+Load a file into an existing table
+Load a file into a new table while inferring the schema for the file.
+Upload files from a stage into a table
+View files in a stage.,,, Creating an S3 stage
+Add & edit named stages.
+See task graphs and run history., Viewing tasks and task graphs in Snowsight
+Debug and rerun task graphs..Viewing tasks and task graphs in Snowsight
+Create a file format ,, Creating a named file format
+
+
+Dashboards, Worksheets, Databases, Schemas,Tables, Views, User-defined functions (UDF) and stored procedures.
+
+
+Notebook : TO store notes..
+
+GRANT USAGE ON DATABASE notebooks TO ROLE create_notebooks;
+GRANT USAGE ON SCHEMA notebooks TO ROLE create_notebooks;
+GRANT CREATE NOTEBOOK ON SCHEMA notebooks TO ROLE create_notebooks;
+
+USE WAREHOUSE notebooks;
+
+session.sql('USE WAREHOUSE notebooks;')
+
+--> We can sync notebook to Git repository...
+
+*******************************************
+Accessing the session context for a notebook¶
+
+from snowflake.snowpark.context import get_active_session
+session = get_active_session()
+
+SELECT CURRENT_WAREHOUSE(), CURRENT_DATABASE(), CURRENT_SCHEMA();
+
+******************************************
+Visualize results by using Altair¶ 
+
+import altair as alt
+alt.Chart(df).mark_bar().encode(
+    x= alt.X("measurement", axis = alt.Axis(labelAngle=0)),
+    y="value",
+    color="species"
+)
+******************
+import matplotlib.pyplot as plt
+******************
+pivot_df = pd.pivot_table(data=df, index=['measurement'], columns=['species'], values='value')
+******************
+import matplotlib.pyplot as plt
+ax = pivot_df.plot.bar(stacked=True)
+ax.set_xticklabels(list(pivot_df.index), rotation=0)
+******************
+import seaborn as sns
+
+sns.barplot(
+    data=df,
+    x="measurement", hue="species", y="value",
+)
+******************
+import streamlit as st
+st.bar_chart(df, x='measurement', y='value', color='species')
+******************
+
+
+************************************
+Sync Git Repository 
+************************************
+sync your notebook development with a branch in a Git repository.
+
+
+************************************
+Charts
+************************************
+Bar charts
+Line charts
+Scatterplots
+Heat grids
+Scorecards
+
+
+************************************
+Virtual warehouses
+************************************
+Warehouse --> Computing Power..
+DML operations, including loading data into tables.
+Warehouses can be started and stopped at any time.
+compute resources available per cluster in a warehouse.
+
+X-Small 1 0.0003
+Small	2 0.0006
+Medium 	4 0.0011
+Large 	8 0.0022
+X-Large 16
+2X-Large 32
+
+Impact on data loading
+Increasing the size of a warehouse does not always improve data loading performance. 
+Data loading performance is influenced more by the number of files being loaded (and the size of each file) than the size of the warehouse.
+
+Tip
+
+Unless you are bulk loading a large number of files concurrently (i.e. hundreds or thousands of files),
+a smaller warehouse (Small, Medium, Large) is generally sufficient. 
+Using a larger warehouse (X-Large, 2X-Large, etc.) will consume more credits and may not result in any performance increase.
+
+complex queries -> more compute resources
+
+Auto-suspension and auto-resumption :
+By default, auto-suspend is enabled. Snowflake automatically suspends the warehouse if it is inactive for the specified period of time.
+
+Query processing and concurrency
+The number of queries that a warehouse can concurrently process is determined by the size and complexity of each query.
+As queries are submitted, the warehouse calculates and reserves the compute resources needed to process each query. 
+
+Default warehousing size will be created through create and alter...
+
+****************************************************
+What is a multi-cluster warehouse?¶
+With multi-cluster warehouses, Snowflake supports allocating, either statically or dynamically, additional clusters
+to make a larger pool of compute resources available. A multi-cluster warehouse is defined by specifying the following properties:
+
+Maximum number of clusters, greater than 1 (up to 10).
+
+****************************************************
+Understanding Snowflake Table Structures
+****************************************************
+
+
+CreateTable :
+*****************
+CREATE TABLE hospital_table (patient_id INTEGER,
+                             patient_name VARCHAR, 
+                             billing_address VARCHAR,
+                             diagnosis VARCHAR, 
+                             treatment VARCHAR,
+                             cost NUMBER(10,2));
+INSERT INTO hospital_table 
+        (patient_ID, patient_name, billing_address, diagnosis, treatment, cost) 
+    VALUES
+        (1, 'Mark Knopfler', '1982 Telegraph Road', 'Industrial Disease', 
+            'a week of peace and quiet', 2000.00),
+        (2, 'Guido van Rossum', '37 Florida St.', 'python bite', 'anti-venom', 
+            70000.00)
+        ;
+
+CreateView :
+****************
+CREATE VIEW doctor_view AS
+    SELECT patient_ID, patient_name, diagnosis, treatment FROM hospital_table;
+
+CREATE VIEW accountant_view AS
+    SELECT patient_ID, patient_name, billing_address, cost FROM hospital_table;
+
+******************
+
+CREATE VIEW v1 AS SELECT ... FROM my_database.my_schema.my_table;
+
+CREATE VIEW v1 AS SELECT ... FROM my_schema.my_table;
+
+CREATE VIEW v1 AS SELECT ... FROM my_table;
+
+CREATE VIEW employee_hierarchy (title, employee_ID, manager_ID, "MGR_EMP_ID (SHOULD BE SAME)", "MGR TITLE") AS (
+   WITH RECURSIVE employee_hierarchy_cte (title, employee_ID, manager_ID, "MGR_EMP_ID (SHOULD BE SAME)", "MGR TITLE") AS (
+      -- Start at the top of the hierarchy ...
+      SELECT title, employee_ID, manager_ID, NULL AS "MGR_EMP_ID (SHOULD BE SAME)", 'President' AS "MGR TITLE"
+        FROM employees
+        WHERE title = 'President'
+      UNION ALL
+      -- ... and work our way down one level at a time.
+      SELECT employees.title, 
+             employees.employee_ID, 
+             employees.manager_ID, 
+             employee_hierarchy_cte.employee_id AS "MGR_EMP_ID (SHOULD BE SAME)", 
+             employee_hierarchy_cte.title AS "MGR TITLE"
+        FROM employees INNER JOIN employee_hierarchy_cte
+       WHERE employee_hierarchy_cte.employee_ID = employees.manager_ID
+   )
+   SELECT * 
+      FROM employee_hierarchy_cte
+);
+
+********************
+Limitations on Views :
+
+1. The definition for a view cannot be updated.(Cannot use ALTER VIEW or ALTER MATERIALIZED VIEW to change the definition of a view)
+2. Views are read-only (i.e. you cannot execute DML commands directly on a view). 
+
+
+**********************************************************
+Load Data into Snowflake
+**********************************************************
+1.Overview of data loading
+2. Summary of data loading features
+3. Data loading considerations (bulk data loading.)
+4. Working With Amazon S3-compatible Storage (accessing data in other storage.)
+5. Loading data using the web interface (mited amounts of data using the web interface)
+6. Introduction to Loading Semi-structured Data.
+7. Introduction to unstructured data
+8.Bulk loading from a local file system ( loading data in bulk using the COPY command.)
+9. Snowpipe ( loading data continuously using Snowpipe.)
+10. Snowpipe Streaming ( loading data streams continuously using Snowpipe Streaming.)
+11. Transforming data during a load (s for transforming data while loading it into a table using the COPY INTO command.)
+12. Querying Data in Staged Files (query internal and external named stages.)
+
+
+Bulk Loading , Continueous Load - SnowPipe..(- COPY INTO Command from Stage/internal object..)
+
+Internal Stage : Files loaded into tables...stage type is designed to store files that are staged 
+Table stages cannot be altered or dropped.,, 
+
+***********BULKLOADING***************************
+Bulk loading using the COPY command
+This option enables loading batches of data from files already available in cloud storage, or copying (i.e. staging) data files from a 
+local machine to an internal (i.e. Snowflake) cloud storage location before loading the data into tables using the COPY command.
+
+*  While bulk loading we can increase the warehouse size, can upgrade or degrade.
+
+********Bulk load transformation ********
+Simple transformations during a load During Bulk Load COPY command :
+
+Column reordering
+Column omission
+Casts
+Truncating text strings that exceed the target column length..................
+
+
+**************************************************
+SNOWPIPE  ( Microbatches... load as soon as arrives)
+****************************************************
+Continuous loading using Snowpipe
+This option is designed to load small volumes of data (i.e. micro-batches) and incrementally make them available for analysis.
+Snowpipe loads data within minutes after files are added to a stage and submitted for ingestion.
+This ensures users have the latest results, as soon as the raw data is available.
+
+--> Coumpute resource has resources are automatically resized and scaled up or down as required,,,,
+
+COPY Statements 
+--> Bulk Loading Data...
+--> Snowpipe  : to continously load micro-batches of data into staging tables for transformation 
+		and optimization using automated tasks and the 
+		change data capture (CDC) information : --> Using Streams....
+
+
+
+
+
+	
+
+
 
 
 
