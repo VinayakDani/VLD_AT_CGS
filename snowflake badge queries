@@ -713,5 +713,14 @@ copy into daily_14_total
 alter warehouse pc_informatica_wh set warehouse_size = xsmall;
 
 
+-- JSONHierarchial schema in IICS...
+-- IICS has Hierarchial schema component .....
+
+-- JSON Data,, JSON file load to snowflake, Source connection to snowflake to access JSON, bring source data to hierarchial parsor,, inner joins,, 
+   another inner join to join the depedency data and load into snowflake single target....
+-- Mapping task to schedule it and load...
+
+
+
 
 
