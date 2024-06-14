@@ -1373,6 +1373,11 @@ CREATE STAGE my_s3_stage
   URL = 's3://bucket1/path1/'
   FILE_FORMAT = my_csv_format;
 
+CREATE STAGE my_s3_stage
+  STORAGE_INTEGRATION = s3_int
+  URL = 's3://mybucket/encrypted_files/'
+  FILE_FORMAT = my_csv_format;
+
 ** If the forward slash is omitted, all files and folders starting with the prefix for the specified path are included..
 ** required to access and retrieve unstructured data files in the stage
 ** Role must have the access previlage.
@@ -1381,14 +1386,71 @@ CREATE STAGE my_s3_stage
 ----------- Snbowflake Connect :: CyberArk to get the password once we login into snowflake ---- <, Protected password,,,,
 
 
+****************************************
+Accessing AWS S3 stage :
+
+* S3 bucket, IAM role, and policies for Snowflake to access 
+
+An AWS IAM user created for your Snowflake account is associated with an IAM role you configure via a trust relationship.
+The role is granted limited access to an S3 bucket through IAM policies you configure.
+
+
+
+ALTER WAREHOUSE mywarehouse RESUME;
+-- Load datainto into Snowflake table.
+COPY INTO mytable
+  FROM @my_ext_stage
+  PATTERN='.*sales.*.csv';
+
+-- Load all prefixed with data/files.
+COPY INTO mytable
+  FROM s3://mybucket/data/files credentials=(AWS_KEY_ID='$AWS_ACCESS_KEY_ID' AWS_SECRET_KEY='$AWS_SECRET_ACCESS_KEY')
+  FILE_FORMAT = (FORMAT_NAME = my_csv_format);
+
+
+-- adhoc example loads data from all files in the S3 bucket.
+COPY INTO mytable
+  FROM s3://mybucket credentials=(AWS_KEY_ID='$AWS_ACCESS_KEY_ID' AWS_SECRET_KEY='$AWS_SECRET_ACCESS_KEY')
+  FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = '|' SKIP_HEADER = 1);
+
+-- Validation of load from external to stage by setting VALIDATION_MODE parameter...
+ ** VALIDATION_MODE parameter -->returns errors that it encounters in the file.
+[ VALIDATION_MODE = RETURN_<n>_ROWS | RETURN_ERRORS | RETURN_ALL_ERRORS ]
+
+
+****************************************
+COPY INTO mytable
+  FROM @mystage/myfile.csv.gz
+  VALIDATION_MODE=RETURN_ALL_ERRORS;
+
+SET qid=last_query_id();
+
+--- Copy failures to a mystage error table...
+COPY INTO @mystage/errors/load_errors.txt FROM (SELECT rejected_record FROM TABLE(result_scan($qid)));
+
+*********************************************************************
+:: Load Failures ::::
+*********************************************************************
+Troubleshooting bulk data loads :
+
+Data load failures¶
+Step 1: Viewing the COPY history for the table¶
+
+The STATUS column indicates whether a particular set of files was loaded, partially loaded, or failed to load. 
+The FIRST_ERROR_MESSAGE column provides a reason when an attempt partially loaded or failed.
 
 
 
 
-	
 
 
 
+
+
+
+*******************************************************************************************************
+************************************ SNOWPIPE *********************************************************
+*******************************************************************************************************
 
 
 
