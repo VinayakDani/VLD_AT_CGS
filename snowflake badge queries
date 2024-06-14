@@ -1451,6 +1451,38 @@ The FIRST_ERROR_MESSAGE column provides a reason when an attempt partially loade
 *******************************************************************************************************
 ************************************ SNOWPIPE *********************************************************
 *******************************************************************************************************
+Snowpipe
+Snowpipe enables loading data from files as soon as they’re available in a stage.
+
+* load data in microbatches..
+* making it available to users within minutes, rather than manually executing COPY statements on a schedule to load larger batches.
+
+* data is loaded according to the COPY statement defined in a referenced pipe.
+* All the copy statements will be defined in that snowpipe., data types and file formats 
+
+How to detect the stage files which are available :
+1. Automating Snowpipe using cloud messaging
+	- Event notification informs snowpipe on arrival of file,, snowpipe loads it serverless fashion based on parameters defined...
+
+2. Calling Snowpipe REST endpoints
+	Your client application calls a public REST endpoint
+
+How is Snowpipe different from bulk data loading?¶
+
+Bulk data load  : Stored in the metadata of the target table for 64 days.
+		: Requires a user-specified warehouse to execute COPY statements.
+
+Snowpipe  : Stored in the metadata of the pipe for 14 days.
+	  : Uses Snowflake-supplied compute resources.
+
+Load order of data files !!
+	: Newer files Snowpipe appends them to the queue
+	:  Snowpipe generally loads older files first, there is no guarantee that files are loaded in the same order they are staged.
+
+Data duplication¶ 
+	: file loading metadata associated with each pipe object to prevent reloading the same files (and duplicating data) in a table.
+	: metadata stores the path(Prefix),,,  name of each loaded file, , 
+
 
 
 
