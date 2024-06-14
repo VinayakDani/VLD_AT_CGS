@@ -1485,4 +1485,179 @@ Data duplication¶
 
 
 
+*********************************************
+Snowflake DDL's
+*********************************************
+CREATE TABLE table1 (
+    col1 INTEGER NOT NULL
+    );
+
+ALTER TABLE table1 
+    ADD COLUMN col2 VARCHAR NOT NULL;
+
+ALTER TABLE Customers
+DROP COLUMN ContactName;
+
+
+ALTER TABLE table1 
+    ADD COLUMN col3 VARCHAR NOT NULL CONSTRAINT uniq_col3 UNIQUE NOT ENFORCED;
+
+
+CREATE TABLE table2 (
+    col1 INTEGER NOT NULL,
+    col2 INTEGER NOT NULL,
+    CONSTRAINT pkey_1 PRIMARY KEY (col1, col2) NOT ENFORCED
+    );
+CREATE TABLE table3 (
+    col_a INTEGER NOT NULL,
+    col_b INTEGER NOT NULL,
+    CONSTRAINT fkey_1 FOREIGN KEY (col_a, col_b) REFERENCES table2 (col1, col2) NOT ENFORCED
+    );
+
+CREATE SCHEMA my_schema COMMENT='this is comment1';
+
+SHOW SCHEMAS LIKE '%schema%';
+
+
+COMMENT ON SCHEMA my_schema IS 'now comment2';
+-- Showschema
+SHOW SCHEMAS LIKE '%schema%';
+
+
+CREATE TABLE my_table(my_column string COMMENT 'this is comment3');
+
+--- Describe table
+DESC TABLE my_table;
+
+-- Create view : 
+CREATE VIEW my_view comment='this is comment5' AS (SELECT * FROM my_table);
+
+--show view
+SHOW VIEWS LIKE 'my_view';
+
+--
+DROP TABLE t;
+CREATE TABLE t AS SELECT * FROM ... ;
+
+INSERT INTO table1 (ID, varchar1, variant1)
+    VALUES (4, 'Fourier', PARSE_JSON('{ "key1": "value1", "key2": "value2" }'));
+
+INSERT INTO mytable
+  SELECT TO_DATE('2013-05-08T23:39:20.123'), TO_TIMESTAMP('2013-05-08T23:39:20.123'), TO_TIMESTAMP('2013-05-08T23:39:20.123');
+
+INSERT INTO employees
+  VALUES
+  ('Lysandra','Reeves','1-212-759-3751','New York',10018),
+  ('Michael','Arnett','1-650-230-8467','San Francisco',94116);
+
+
+INSERT INTO employees (first_name,last_name,workphone,city,postal_code)
+  WITH cte AS
+    (SELECT contractor_first AS first_name,contractor_last AS last_name,worknum AS workphone,city,zip_code AS postal_code
+     FROM 
+    SELECT first_name,last_name,workphone,city,postal_code
+    FROM cte;contractors);
+
+INSERT INTO emp (id,first_name,last_name,city,postal_code,ph)
+  SELECT a.id,a.first_name,a.last_name,a.city,a.postal_code,b.ph
+  FROM emp_addr a
+  INNER JOIN emp_ph b ON a.id = b.id;
+
+---- MERGE statatement ::
+MERGE INTO target_table USING source_table 
+    ON target_table.id = source_table.id
+    WHEN MATCHED THEN 
+        UPDATE SET target_table.description = source_table.description;
++------------------------+
+| number of rows updated |
+|------------------------|
+|                      1 |
++------------------------+
+
+
+
+MERGE INTO t1 USING t2 ON t1.t1Key = t2.t2Key
+    WHEN MATCHED AND t2.marked = 1 THEN DELETE
+    WHEN MATCHED AND t2.isNewStatus = 1 THEN UPDATE SET val = t2.newVal, status = t2.newStatus
+    WHEN MATCHED THEN UPDATE SET val = t2.newVal
+    WHEN NOT MATCHED THEN INSERT (val, status) VALUES (t2.newVal, t2.newStatus);
+
+-------------MERGE Example--------------------
+-- Setup for example.
+CREATE TABLE target_orig (k NUMBER, v NUMBER);
+INSERT INTO target_orig VALUES (0, 10);
+
+CREATE TABLE src (k NUMBER, v NUMBER);
+INSERT INTO src VALUES (0, 11), (0, 12), (0, 13);
+
+-- Multiple updates conflict with each other.
+-- If ERROR_ON_NONDETERMINISTIC_MERGE=true, returns an error;
+-- otherwise updates target.v with a value (e.g. 11, 12, or 13) from one of the duplicate rows (row not defined).
+
+CREATE OR REPLACE TABLE target CLONE target_orig;
+
+MERGE INTO target
+  USING src ON target.k = src.k
+  WHEN MATCHED THEN UPDATE SET target.v = src.v;
+
+-- Updates and deletes conflict with each other.
+-- If ERROR_ON_NONDETERMINISTIC_MERGE=true, returns an error;
+-- otherwise either deletes the row or updates target.v with a value (e.g. 12 or 13) from one of the duplicate rows (row not defined).
+
+CREATE OR REPLACE TABLE target CLONE target_orig;
+
+MERGE INTO target
+  USING src ON target.k = src.k
+  WHEN MATCHED AND src.v = 11 THEN DELETE
+  WHEN MATCHED THEN UPDATE SET target.v = src.v;
+
+-- Multiple deletes do not conflict with each other;
+-- joined values that do not match any clause do not prevent the delete (src.v = 13).
+-- Merge succeeds and the target row is deleted.
+
+CREATE OR REPLACE TABLE target CLONE target_orig;
+
+MERGE INTO target
+  USING src ON target.k = src.k
+  WHEN MATCHED AND src.v <= 12 THEN DELETE;
+
+-- Joined values that do not match any clause do not prevent an update (src.v = 12, 13).
+-- Merge succeeds and the target row is set to target.v = 11.
+
+CREATE OR REPLACE TABLE target CLONE target_orig;
+
+MERGE INTO target
+  USING src ON target.k = src.k
+  WHEN MATCHED AND src.v = 11 THEN UPDATE SET target.v = src.v;
+
+-- Use GROUP BY in the source clause to ensure that each target row joins against one row
+-- in the source:
+
+CREATE OR REPLACE TABLE target CLONE target_orig;
+
+MERGE INTO target USING (select k, max(v) as v from src group by k) AS b ON target.k = b.k
+  WHEN MATCHED THEN UPDATE SET target.v = b.v
+  WHEN NOT MATCHED THEN INSERT (k, v) VALUES (b.k, b.v);
+
+--------------------------------------------------------------
+
+UPDATE :
+
+UPDATE target
+  SET v = src.v
+  FROM src
+  WHERE target.k = src.k;
+
+BEGIN WORK;
+DELETE FROM leased_bicycles 
+    USING (SELECT bicycle_ID AS bicycle_ID FROM returned_bicycles) AS returned
+    WHERE leased_bicycles.bicycle_ID = returned.bicycle_ID;
+TRUNCATE TABLE returned_bicycles;
+COMMIT WORK;
+
+--- TRUNCATE TABLE :
+TRUNCATE TABLE IF EXISTS temp;
+
+
+
 
