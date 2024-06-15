@@ -2338,3 +2338,53 @@ set rev.amount = rent.amount;
 select * from revenue;
 
 **********************************************************************************************
+
+::::::::::::::::::SNowflake TIme Travel ::::::::::::::::
+
+create table my_table(col1 number, col2 date) data_retention_time_in_days=90;
+
+alter table my_table set data_retention_time_in_days=30;
+
+alter table my_table set data_retention_time_in_days=0;
+
+previous version of data can be queried using the AT | BEFORE Clause.-------
+
+CLONE: To create a logical duplicate of the object at a specific point in its history.
+TIMESTAMP: From a given time (Data & Time) provided.
+OFFSET: Time difference from current time till offset provided in seconds.
+STATEMENT: Using a Statement ID from the point where the last DML query was fired.
+UNDROP: If a table is dropped accidentally, it can be restored using the UNDRO
+
+create table restored_table clone my_table at(timestamp => 'Sat, 09 May 2015 01:01:00 +0300’::timestamp_tz);
+
+create schema restored_schema clone my_schema at(offset => -3600);
+
+select * from my_table at(timestamp => 'Fri, 26 May 2023 1:30:00 -0700’::timestamp_tz);
+
+
+select * from my_table at(offset => -60*5);
+
+select * from my_table before(statement => '8e5d0ca9-005a-44f6-a858-b8f5b37c5726');
+
+UNDROP DATABASE EMP
+
+Fail-Safe
+Snowflake provides another exciting feature called Fail-safe where historical data can be protected in case of any failure.
+Fail-safe allows a maximum period of 7 days which begins after the Time Travel retention period ends
+
+Temporary and Transient Tables
+
+Transient tables ::::::::::::::::::::
+can have a Time Travel retention period of either 0 or 1 day.
+Temporary tables can also have a Time Travel retention period of 0 or 1 day; 
+however, this retention period ends as soon as the table is dropped or the session in which the table was created ends.
+Transient and temporary tables have __________ no Fail-safe period.
+The maximum additional fees incurred for Time Travel and Fail-safe by these types of tables are limited to 1 day. 
+
+
+Table Type	Time Travel Retention Period (Days)			Fail-safe Period (Days)	Total Historical Data Maintained (Days)
+----------	----------------------------------------------		---------------------------------------------------------------
+Permanent	1 day (for Snowflake Standard Edition)
+		90 days (for Snowflake Enterprise Edition)		7 days	8 days for Standard, 97 days for Enterprise
+Transient	0 days (Standard) or 1 day (Enterprise)	0 days		0 days (Standard) or 1 day (Enterprise)
+Temporary	0 days (Standard) or 1 day (Enterprise)	0 days
