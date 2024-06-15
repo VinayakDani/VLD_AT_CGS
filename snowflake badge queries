@@ -1,3 +1,6 @@
+
+
+
 snowflake.sql
 
 https://data-engineering-simplified.medium.com/flatten-function-in-snowflake-29b9ee54124f
@@ -2175,4 +2178,7 @@ create or replace task cricket.raw.load_json_to_raw
 
 
 --- So, once data is inserted into macth_raw_table,,,, all the changes eventually captured through a stream,, which loads next tables..
+--- The next task which is created will take the data from the stream directly rather from the tabell...
+from the stream object next task will pick the  data..
 
+***************************************************************
