@@ -2273,6 +2273,7 @@ select * from payment_stream;
 2. Insert if no matching.
 3. Update if present...
 
+:::::::::::::::::::::::Logic ::::::::::::::::::::::::::::::
 merge into revenue rev
 using (select ren.rental_id, ren.inventory_id, ren.customer_id, p.payment_id, p.amount, p.payment_date, p.METADATA$ACTION, p.METADATA$ISUPDATE
        from payment_stream p
@@ -2291,3 +2292,30 @@ select * from revenue;
 
 ---> Parameters passed to streammm table is   (((( METADATA$ACTION   and  p.METADATA$ISUPDATE   ||| METADATA$ACTION='INSERT' & METADATA$ISUPDATE='TRUE')))
 
+************************************************************************************************************************
+
+ :::::::::::::: Automating through Tasks ::::::::::::::
+
+// Task
+CREATE OR REPLACE TASK final_table_revenue_task
+    WAREHOUSE = FENG_WH
+    SCHEDULE = '1 MINUTE'
+    WHEN SYSTEM$STREAM_HAS_DATA('feng_database.feng_schema.payment_stream')    AS 
+merge into revenue rev
+using (select ren.rental_id, ren.inventory_id, ren.customer_id, p.payment_id, p.amount, p.payment_date, p.METADATA$ACTION, p.METADATA$ISUPDATE
+       from payment_stream p
+       join rental ren
+       on ren.rental_id=p.rental_id) rent
+on rev.rental_id = rent.rental_id
+when not matched
+  then insert
+  (rental_id, payment_id, inventory_id, customer_id, amount, payment_date)
+  values
+    (rent.rental_id,rent.payment_id, rent.inventory_id, rent.customer_id, rent.amount, rent.payment_date)
+when matched and rent.METADATA$ACTION='INSERT' and rent.METADATA$ISUPDATE='TRUE'
+then update 
+set rev.amount = rent.amount;
+show tasks;
+alter task final_table_revenue_task resume;
+
+*******************************************************************************************************************************
