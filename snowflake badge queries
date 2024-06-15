@@ -2235,3 +2235,59 @@ WHEN NOT MATCHED AND metadata$action = 'INSERT'
 THEN INSERT (id, first_name, last_name) VALUES (r1.id, r1.fname, r1.lname);
 
 
+**********************************************************
+
+CDC Stream - task - laod to final table by joins...
+*******************************************************
+create a stream on table payment.
+	||
+stream captures insert and amount update
+	||
+task which will be triggered if the stream gets new data changes.
+	||
+ask then will join rental and payment tables to write new record to our final table revenue.
+
+************************************************
+
+// create our final table revenue
+create or replace table revenue (
+    rental_id integer,
+    payment_id integer,
+    inventory_id integer,
+    customer_id integer,
+    amount decimal(5,2),
+    payment_date timestamp
+);
+// create stream on payment table
+create or replace stream payment_stream on table feng_database.feng_schema.payment;
+// insert into rental and payment tables first time for a rental
+insert into rental values (26002, '2022-09-23 22:50:12.000', 2666, 393, null, 2, '2022-09-23 22:50:12.000');
+insert into payment values (42002, 393, 2, 26002, 3.99, '2022-09-23 22:50:12.000');
+// look at what we have in payment stream
+select * from payment_stream;
+
+
+---> Let's CDC captured in stream.
+
+1. Merge into Final table from a stream if matching column matches b/w stream data and final table...(Based on Join ,, Merge it)
+2. Insert if no matching.
+3. Update if present...
+
+merge into revenue rev
+using (select ren.rental_id, ren.inventory_id, ren.customer_id, p.payment_id, p.amount, p.payment_date, p.METADATA$ACTION, p.METADATA$ISUPDATE
+       from payment_stream p
+       join rental ren
+       on ren.rental_id=p.rental_id) rent
+on rev.payment_id = rent.payment_id
+when not matched
+  then insert
+  (rental_id, payment_id, inventory_id, customer_id, amount, payment_date)
+  values
+    (rent.rental_id,rent.payment_id, rent.inventory_id, rent.customer_id, rent.amount, rent.payment_date)
+when matched and rent.METADATA$ACTION='INSERT' and rent.METADATA$ISUPDATE='TRUE'
+then update 
+set rev.amount = rent.amount;
+select * from revenue;
+
+---> Parameters passed to streammm table is   (((( METADATA$ACTION   and  p.METADATA$ISUPDATE   ||| METADATA$ACTION='INSERT' & METADATA$ISUPDATE='TRUE')))
+
