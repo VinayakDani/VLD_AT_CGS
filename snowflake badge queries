@@ -2095,3 +2095,13 @@ from
 -- 2000 matches * 600 balls per match = 1,200,000
 
 **************************************************************************************888
+
+***************
+Average Salary in each department ;
+
+SELECT Name, Age, Department, Salary, 
+ AVG(Salary) OVER( PARTITION BY Department) AS Avg_Salary
+ FROM employee;;
+
+*************************************************************
+
