@@ -2204,3 +2204,10 @@ create or replace masking policy mask_sensitive_text as (input_sensitive_text st
 	else '****MASKED****'
 end;
 
+********************************************
+Alter command to apply masking policy to views
+
+alter view std_vw modify column credit_card_number set masking policy mask_sensitive_text;
+
+
+***********************************************8
