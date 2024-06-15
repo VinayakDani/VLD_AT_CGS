@@ -2105,3 +2105,72 @@ SELECT Name, Age, Department, Salary,
 
 *************************************************************
 
+WINDOW functions are aggregating, ranking, and Value functionss...
+WINDOW Functions ::
+Aggregate	Ranking		VAlue
+Max()		Row_Number()	Lag()
+AVG()		RANK()		LEAD()
+MIN()		DENSE_Rank()	FIRST_VALUE()
+COUNT()		PERCENT_RANK()	LAST_VALUE()
+
+RANK() – assigns rank to all the rows within every partition. 1 given to the first row, rows having same value are assigned same rank.
+DENSE_RANK() – e­ach row a unique number..,, no two rows will have a same partition..
+
+********************************************************
+
+Automating the data flows using tasks ::
+********************************************************
+- Creating the task objects...
+- creating the graphs
+- creating the acyclic tasks...
+
+TASK 1
+LOAD-JSON0-Data-to-RAW
+(Just a copy command to load the data)
+
+TASK 2
+Load to Clean Match
+(Load only when precious completed,
+Creating tha append only streams on top of the raw tables...
+Concept of stream objects creationsss)
+
+TASK 3
+Stream object to extracta and insert into Clean Players Object..
+
+TASK 4
+Load to Player Dimention, So on DIM in parallel..
+
+From these DIM, load the load to FACT using join operation with Clean tables and Dimention tables,
+
+TASK 5
+Load to Macth FACT Table...
+(Dimentions to be loaded first then FACTS,, facts have referential key's , so dim to be loaded first)
+
+-- Creating the data pipelines using the tasks in snowflake....
+
+****************************************************
+Creating the streams and schedule a task to load these data\\\\\\
+****************************************************
+--- 1. Creating a stream on top of a raw table ( On table stream will be created)
+-- On a single table we can create more tahn one stream...
+create or replace stream cricket.raw.for_match_stream on table cricket.raw.match_raw_tbl append_only = TRUE;
+create or replace stream cricket.raw.for_player_stream on table cricket.raw.match_raw_tbl append_only = TRUE;
+
+
+-- 2. Creating a task that runs for every  5 minutes ...
+-- creating a task on table...
+-- 
+create or replace task cricket.raw.load_json_to_raw
+	warehouse = 'COMPUTE_WH'
+	schedule = '5 Minutes'
+  	as
+	copy INTO cricket.raw.match_raw_table from 
+	(
+		select 
+			t.$1:meta::object as meta,
+			t.$1:info::varient as info,
+			.................
+	from @cricket.land.mt_stg/cricket/json (file_format => '')
+) on error = continue..
+
+
