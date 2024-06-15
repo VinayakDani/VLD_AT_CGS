@@ -2319,3 +2319,22 @@ show tasks;
 alter task final_table_revenue_task resume;
 
 *******************************************************************************************************************************
+:::::::;; DELETE :::::::
+
+merge into revenue rev
+using (select ren.rental_id, ren.inventory_id, ren.customer_id, p.payment_id, p.amount, p.payment_date, p.METADATA$ACTION, p.METADATA$ISUPDATE
+       from payment_stream p
+       join rental ren
+       on ren.rental_id=p.rental_id) rent
+on rev.payment_id = rent.payment_id
+when not matched
+  then insert
+  (rental_id, payment_id, inventory_id, customer_id, amount, payment_date)
+  values
+    (rent.rental_id,rent.payment_id, rent.inventory_id, rent.customer_id, rent.amount, rent.payment_date)
+when matched and rent.METADATA$ACTION='DELETE' 
+then update 
+set rev.amount = rent.amount;
+select * from revenue;
+
+**********************************************************************************************
