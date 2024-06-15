@@ -2185,3 +2185,22 @@ from the stream object next task will pick the  data..
 
 We can resume all the task..
 Grant execute task, execute managed task on account to role sysadmin;
+
+*************************
+
+Crareting views :
+*****************
+* Standard View
+* Secure View.
+* Materialized View.
+* Secure Materialized View..
+
+- Creating the masking Policy..
+
+create or replace masking policy mask_sensitive_text as (input_sensitive_text string)
+	returns string
+	when current_role() in ('ROLE_DOES_NOT_EXIST')
+		then input_sensitive_data
+	else '****MASKED****'
+end;
+
