@@ -2182,3 +2182,6 @@ create or replace task cricket.raw.load_json_to_raw
 from the stream object next task will pick the  data..
 
 ***************************************************************
+
+We can resume all the task..
+Grant execute task, execute managed task on account to role sysadmin;
