@@ -2388,3 +2388,19 @@ Permanent	1 day (for Snowflake Standard Edition)
 		90 days (for Snowflake Enterprise Edition)		7 days	8 days for Standard, 97 days for Enterprise
 Transient	0 days (Standard) or 1 day (Enterprise)	0 days		0 days (Standard) or 1 day (Enterprise)
 Temporary	0 days (Standard) or 1 day (Enterprise)	0 days
+
+
+
+----------------------------------------------------------
+::::::::::::::: Data Engineer 1,  day to day project work (Dailywork):
+--- 
+1. Building ETL pipeline using  IICS and snowflake to load the end data from various source system to Snowflake...
+2. Change requests implementations for any enhancement and defect fixed at the dvelopment and SIT state..
+3. Bulk loading of data from Sources and internal stages from AWS S3 to stage in SF..
+4. Developing LLDD & HLDD technical documnest..
+5. Interacting with the release managment and config management and interacting with database support and SDLC processes...
+6. Ensuring Data modelling technology to 
+7. Data quality checks and source system analysis & business rules analysis,,, source to target mappings and performance check nad 
+	customer /business change requests imlementations...
+
+----------------------------------------------------------
