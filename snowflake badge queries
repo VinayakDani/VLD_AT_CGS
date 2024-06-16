@@ -34,6 +34,20 @@ GIT your project related queries, share them within your team  ????
 
 ************************
 
+DDL : C,A,Drop,Trun
+DML : I,Up,De, Merge
+DCL : Grant, Revoke(withdraw)
+TCL : Commit, RollBack, Savepoint...
+
+Rollback  --> undo actions that are not saved
+
+
+
+ALTER TABLE table_name
+ADD column_name datatype;
+
+ALTER TABLE table_name
+RENAME COLUMN old_name to new_name;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
