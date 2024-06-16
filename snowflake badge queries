@@ -440,7 +440,7 @@ on  d.relative_path = replace(s.direct_url, 'https://uni-klaus.s3.us-west-2.amaz
 
 [connections.snowflake]
 account = "MGYKXFX-TG99297"
-user = "VinayakDani"
+user = "VinayakDani"E
 password = "Mahadev%2912"
 role = "SYSADMIN"
 warehouse = "COMPUTE_WH"
@@ -2408,6 +2408,15 @@ Temporary	0 days (Standard) or 1 day (Enterprise)	0 days
 5. Interacting with the release managment and config management and interacting with database support and SDLC processes...
 6. Ensuring Data modelling technology to 
 7. Data quality checks and source system analysis & business rules analysis,,, source to target mappings and performance check nad 
+
+-----------------------------------------------------------------
+
+:::::::::::::: Snowflake Architecture ::::::::::::::::::
+	Cloud Services Layer
+	Storage Layer
+	Compute Layer
+
+
 	customer /business change requests imlementations...
 
 ----------------------------------------------------------
