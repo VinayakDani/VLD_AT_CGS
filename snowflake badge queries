@@ -3,8 +3,15 @@
 
 snowflake.sql
 
+-- Medium Blogs
 https://data-engineering-simplified.medium.com/flatten-function-in-snowflake-29b9ee54124f
 https://medium.com/snowflake/near-real-time-cdc-in-snowflake-cf471807d72d
+
+-- Hevo Blogs :
+https://hevodata.com/blog/oracle-to-snowflake-etl/    
+https://hevodata.com/blog/amazon-s3-to-snowflake/
+https://hevodata.com/blog/mysql-to-snowflake-data-migration-steps/
+
 -- Snowflake Queries..
 
 
