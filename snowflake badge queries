@@ -1,3 +1,38 @@
+Snowflake integration with Git Repo ,,, GIT API Integration ...
+-----------------------------------------------------------
+API Integration—an ACCOUNTADMIN must create this
+
+CREATE OR REPLACE API INTEGRATION git_sample_integration
+  API_PROVIDER = git_https_api
+  API_ALLOWED_PREFIXES = ('https://github.com/jeffhollan')
+  ENABLED = TRUE;
+
+CREATE OR REPLACE GIT REPOSITORY git_sample
+  API_INTEGRATION = git_sample_integration
+  -- GIT_CREDENTIALS = my_secret if needed
+  ORIGIN = 'https://github.com/jeffhollan/snowflake-git-sample';
+
+list my git repo :
+ls @git_sample_branches/main;
+
+-- refresh the files inside of Snowflake after making a commit in the external git repo
+ALTER GIT REPOSITORY git_sample FETCH;
+
+EXECUTE IMMEDIATE FROM @git_sample/branches/main/sql/base.sql;
+
+
+-----------> Non direct integration of SQL codes with GIT Yet,,,, But we can integrate the snowpark and streamlit applications with Git........
+
+So,, the solution is,,, there is no direct Snowflake integration so if you want to run some queries stored in GitHub you need to open the file and manually copy & paste it into Snowflake UI to run them. 
+
+*********************
+GIT your project related queries, share them within your team  ????
+---->  plugin for VSCode
+---> connect to Snowflake and run queries directly from VSCode and because VSCode has also GitHub integration, you can easily clone your GitHub repo
+	 with SQL code and run it directly from VSCode! And of course vice versa - after code update in editor,    ++> But, there are lot of difficulties toooo.......
+
+************************
+
 
 
 
