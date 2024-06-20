@@ -1,0 +1,99 @@
+https://medium.com/snowflake/schema-inference-snowflake-scripting-to-automate-table-ddl-creation-in-snowflake-6d81c6fdbfdf
+
+*********************************************
+ 1. schema inference and snowflake scripting. 
+*********************************************
+        +. Snowflake supports schema inference for Parquet, Avro, ORC, JSON, and CSV files.
+        .+ execute procedural logic, with or without creating a stored procedure, that can include cursors, loops, conditional logic and more. 
+        .+ Automate table DDL creation,  schema inference and snowflake scripting.
+
+        Aautomate DDL creation,
+        --stage contents
+        LIST @test.raw.aws_stage;
+
+    --create control table for loading via stored procedure
+    -- parse the output of your list command to find distinct paths to each partition:
+    CREATE OR REPLACE TABLE TEST.RAW.CONTROL_TBL AS
+    SELECT 
+    DISTINCT SPLIT_PART($1,'/',5) TABLE_NAME, 
+        '@test.raw.aws_stage/'||SPLIT_PART($1,'/',5)||'/' FILE_PATH
+    FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+
+    SELECT * FROM TEST.RAW.CONTROL_TBL;
+
+*****************************************
+    Step 2. Create a file format
+*****************************************
+In order to infer schema, create table DDL and load data, we need a file format to instruct Snowflake how to read the files. \
+Note that I specified parse_header=true in the snippet below, which will ensure that the schema generated from these CSVs will contain actual
+column names as opposed to generic names such as c1, c2, c3.
+
+     --create file format
+    CREATE OR REPLACE FILE FORMAT test.raw.csv_format
+    TYPE = 'CSV'
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+    COMPRESSION = 'GZIP'
+    FIELD_DELIMITER = ','
+    RECORD_DELIMITER = '\n'
+    PARSE_HEADER=TRUE;
+
+
+*****************************************
+Step 3. Test schema inference on one table
+*****************************************
+.+ make sure that our file format is correct and that schema inference works as expected. Note IGNORE_CASE=>TRUE — it 
+ensures that the column names are created case-insensitive (all upper case), regardless of the casing in the original data.   
+
+--test that schema inference works as expected
+SELECT *
+  FROM TABLE(
+    INFER_SCHEMA(
+      LOCATION=>'@test.raw.aws_stage/customer/'
+      , FILE_FORMAT=>'test.raw.csv_format'
+      , IGNORE_CASE => TRUE
+      )
+    );
+
+*****************************************
+Step 4. Create a script to create DDL and load data into all tables
+*********** Using CURSORS and LOOPS ****************    --> Used Cursors and Loops to automate the DDL and table creations...
+                                                        --> (Not a procedure but it is procedural logic)
+*****************************************
+
+loops through rows in the control table, generates table DDL and runs a copy command to load data into each table.
+Note match_by_column_name=case_insensitive — it is needed since the order of columns in inferred DDL may be different from the order in the files.
+
+--script to automate DDL creation and loading of data
+DECLARE
+  cursor CURSOR FOR SELECT table_name, file_path FROM test.raw.control_tbl;
+  table_name STRING;
+  file_path STRING;
+BEGIN
+  FOR rec IN cursor
+  LOOP
+    -- Fetch table name and file path into variables
+    table_name := rec.table_name;
+    file_path := rec.file_path;
+
+    -- Create table using the detected schema from the control table path
+    EXECUTE IMMEDIATE 'CREATE OR REPLACE TABLE TEST.RAW.' || rec.table_name ||
+    ' USING TEMPLATE (
+      SELECT ARRAY_AGG(OBJECT_CONSTRUCT(*))
+      FROM TABLE(
+        INFER_SCHEMA(
+          LOCATION => ''' || rec.file_path || ''',
+          FILE_FORMAT => ''TEST.RAW.CSV_FORMAT'',
+          IGNORE_CASE => TRUE
+        )
+      )) ENABLE_SCHEMA_EVOLUTION = TRUE;';
+  
+    -- Copy data into the newly created table
+    EXECUTE IMMEDIATE 
+    'COPY INTO TEST.RAW.' || rec.table_name ||
+    ' FROM ''' || rec.file_path || ''' FILE_FORMAT = (FORMAT_NAME = ''TEST.RAW.CSV_FORMAT'') MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE;';
+  END LOOP;
+
+  RETURN 'Tables processed successfully';
+END;
+
+******************************************************************************************************
