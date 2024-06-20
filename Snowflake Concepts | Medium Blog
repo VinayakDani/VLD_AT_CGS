@@ -1,6 +1,12 @@
 https://medium.com/snowflake/schema-inference-snowflake-scripting-to-automate-table-ddl-creation-in-sno wflake-6d81c6fdbfdf
 _--> SNowflake Scripting,  automating DDL creation for internal and External stage files using ((Snowflake Scripting and Schema Inferance))....
 
+--》》 Snowflake Developers Guide ::: 
+https://developers.snowflake.com/
+
+
+
+
 Note 1:::
 *********
 * Using Just one procedural code we and creating a task, what ever different types of files are arived at different paths
