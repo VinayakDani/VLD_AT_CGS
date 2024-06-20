@@ -61,6 +61,7 @@ SELECT *
       )
     );
 
+IMP... Automate loading from stage to tables... using sursor object...
 *****************************************
 Step 4. Create a script to create DDL and load data into all tables
 *********** Using CURSORS and LOOPS ****************    --> Used Cursors and Loops to automate the DDL and table creations...
