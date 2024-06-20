@@ -1,4 +1,5 @@
 https://medium.com/snowflake/schema-inference-snowflake-scripting-to-automate-table-ddl-creation-in-snowflake-6d81c6fdbfdf
+_--> SNowflake Scripting,  automating DDL creation for internal and External stage files using ((Snowflake Scripting and Schema Inferance))....
 
 *********************************************
  1. schema inference and snowflake scripting. 
