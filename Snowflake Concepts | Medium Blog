@@ -105,4 +105,10 @@ BEGIN
 END;
 
 
+
+If your tables have different file formats, you should make the file format name part of your control table. Instead of hard-coding the format 
+name in the script, you would then generate it dynamically from the control table.This script uses CSV files as an example, but can be easily
+adjusted for other file types, such as Parquet and JSON. Just pay close attention to the file format. For example, the parse_header option is
+only applicable to CSVs.Feel free to add error catching to the script and/or put it into a stored procedure if you think you will be leveraging it regularly.
+
 ******************************************************************************************************
