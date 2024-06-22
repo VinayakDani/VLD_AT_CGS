@@ -2903,3 +2903,9 @@ use role sysadmin;
 20. We can create a externak table :::: json_weather_data_set 
 	create external table table_name...;;;;;;;
 21.
+21. Transient table :  Transient tables participate in time travel to a limited degree with a retention period of 1 day by default with no fail-safe period.
+			Snowflake does not preserve a history for these tables,
+
+22. Temporarary Table :
+	A temporary table is a base table that is not stored in the database but instead exists only while the database session in which
+	it was created is active.
