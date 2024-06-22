@@ -2588,7 +2588,8 @@ use role sysadmin;
     
     desc table my_table;
     --desc table my_db.my_schema.my_table; -- fully qualified name
-    
+
+-- Get DDL
     select get_ddl('table','my_table');
     
     insert into my_table(num,num10_1,decimal_20_2,numeric,int,integer) 
