@@ -2895,3 +2895,11 @@ use role sysadmin;
 	from @my_stg;
 
 	
+16. Time travel   --. With AT|BEFORE and timestamp and clone statements Id....
+17. Semi structured --> varient data type ....
+18. External stage data can be loaded into a External table and we can create a View on top of it and with just select statement we can access that Varient datatype
+	and all the columns,,,,
+19. We can create a external stage..
+20. We can create a externak table :::: json_weather_data_set 
+	create external table table_name...;;;;;;;
+21.
