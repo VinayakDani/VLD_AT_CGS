@@ -1977,6 +1977,10 @@ alter table cricket.clean.delivery_clean_tbl
 modify column non_striker set not null;
 
 -- fk relationship     --> Auto Increment value of a column....
+---> Size of varchar : When the size of the varchar is not mentioned, default it will take varchar length of 16 MB for Varchar.
+------------------>>> It is very important to define the varchar length,,, else it would take 16 MB for a individual length, end up more space utilization...
+--> For Char data type : 1 Sting..
+--> Number if not specified  ...   (38, ))
 alter table cricket.clean.delivery_clean_tbl
 add constraint fk_delivery_match_id
 foreign key (match_type_number)
