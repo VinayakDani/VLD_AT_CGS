@@ -2868,4 +2868,30 @@ use role sysadmin;
 3. NOW_TS()	  --> TIMESTAMP_NTZ(9)  ---> Data type with no Timezonneee..
 4. We can alter timezone of a column. 
 	alter session set timezone = 'America/Los';
-5. 
+5. Session level time zone to set time...
+	timestamp_output_format = 'YYYY-MM-DD'
+6. We can create a table using as  select statmt.
+7. load data from one table to another using select statement...
+
+8. We can load data using web interface...
+9. Creating file format before loading to table..
+10. Copy into table using,,, copy into command..
+11. Load data to internal stage using PUT command...
+12.  COPY INTO abc from @/abcd
+	file_format = '' on error ='' purge = true...
+13. Snowflake alloes to to keep the constraints like Primary key in a table,,,, 	but doesn't enforce them , except for not null...
+14. Imppppp,  ,,,,,, Snowflake doesn't enforce the constraint, when PK is inserted again it will just insert>>>>>>>>>>>>>>>>>>>>>
+
+
+15. SnowSQL :::
+	use database MY_DB
+
+	use schema MY_SCHEMA
+
+	put file:///tmp/ch07.csv @my_stg;
+
+	to copy data to table :
+	COPY INTO MY_TABLE
+	from @my_stg;
+
+	
