@@ -1,3 +1,4 @@
+
 Snowflake integration with Git Repo ,,, GIT API Integration ...
 https://docs.snowflake.com/en/developer-guide/git/git-examples
 -----------------------------------------------------------
@@ -2862,3 +2863,9 @@ use role sysadmin;
 **************************************************************************************
 **************************************************************************************
 **************************************************************************************
+1. TODAY_DATE()   --> Date types, datatype..
+2. NOW_TIME()	  --> TIME(9)  --> Time with 9 precision...
+3. NOW_TS()	  --> TIMESTAMP_NTZ(9)  ---> Data type with no Timezonneee..
+4. We can alter timezone of a column. 
+	alter session set timezone = 'America/Los';
+5. 
